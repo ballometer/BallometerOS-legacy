@@ -1,0 +1,30 @@
+- hosts: ballometer
+
+  remote_user: root
+  
+  vars_files: 
+    - ./secrets.yml
+
+  tasks:
+
+    - name: Set timezone to Europe/Zurich
+      timezone:
+        name: Europe/Zurich
+
+    - name: Install git
+      apt: 
+        name: git 
+        state: present
+
+    - name: Install pip
+      apt: 
+        name: python3-pip 
+        state: present
+
+    - name: Clone ballometer from github
+      tags: clone
+      git:
+        repo: https://github.com/wipfli/ballometer.git
+        version: master
+        dest: /root/ballometer
+
