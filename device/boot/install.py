@@ -2,6 +2,7 @@ import shutil
 
 shutil.copyfile('/boot/config.txt', '/boot/config.txt.backup')
 shutil.copyfile('/boot/cmdline.txt', '/boot/cmdline.txt.backup')
+shutil.copyfile('/etc/modules', '/etc/modules.backup')
 
 boot_config_content = '''
 dtparam=i2c_arm=on
@@ -28,4 +29,13 @@ if 'quiet' not in boot_cmdline_content:
     with open('/boot/cmdline.txt', 'w') as f:
         f.write(boot_cmdline_content)
 
+
+etc_modules_content = ''
+with open('/etc/modules') as f:
+    etc_modules_content = ''.join(f.readlines())
+
+if 'i2c-dev' not in etc_modules_content:
+    etc_modules_content += '\ni2c-dev\n'
+    with open('/etc/modules', 'w') as f:
+        f.write(etc_modules_content)
 
