@@ -1,0 +1,11 @@
+- hosts: ballometer
+
+  remote_user: root
+  
+  tasks:
+
+    - name: Delete ballometer folder
+      tags: clone
+      file:
+        path: /root/ballometer
+        state: absent
