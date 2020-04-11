@@ -1,3 +1,7 @@
+import shutil
+
+shutil.copyfile('/boot/config.txt', '/boot/config.txt.backup')
+shutil.copyfile('/boot/cmdline.txt', '/boot/cmdline.txt.backup')
 
 boot_config_content = '''
 dtparam=i2c_arm=on
