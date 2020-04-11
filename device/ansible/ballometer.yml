@@ -28,3 +28,12 @@
         version: master
         dest: /root/ballometer
 
+    - name: Run boot/install.py for faster boot
+      tags: boot
+      command: /usr/bin/python3 /root/ballometer/device/boot/install.py
+      args:
+        creates: /boot/config.txt.backup
+
+    
+      
+

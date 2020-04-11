@@ -4,8 +4,16 @@
   
   tasks:
 
+    - name: Run boot/uninstall.py
+      tags: boot
+      command: /usr/bin/python3 /root/ballometer/device/boot/uninstall.py
+      args:
+        removes: /boot/config.txt.backup
+        
     - name: Delete ballometer folder
       tags: clone
       file:
         path: /root/ballometer
         state: absent
+
+    
