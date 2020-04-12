@@ -21,6 +21,11 @@
         name: python3-pip 
         state: present
 
+    - name: Install numpy
+      apt:
+        name: python3-numpy
+        state: present
+
     - name: Clone ballometer from github
       tags: clone
       git:
@@ -33,6 +38,27 @@
       command: /usr/bin/python3 /root/ballometer/device/boot/install.py
       args:
         creates: /boot/config.txt.backup
+
+    # reboot required to enable i2c
+
+    - name: Run sensors/bmp/install.py
+      tags: bmp
+      command: /usr/bin/python3 /root/ballometer/device/sensors/bmp/install.py
+
+    - name: Run sensors/sht/install.py
+      tags: sht
+      command: /usr/bin/python3 /root/ballometer/device/sensors/sht/install.py
+
+    - name: Run sensors/tsl/install.py
+      tags: tsl
+      command: /usr/bin/python3 /root/ballometer/device/sensors/tsl/install.py
+
+    - name: Install ffmpeg for sensors/mic
+      tags: mic
+      apt:
+        name: ffmpeg
+        state: present
+      
 
     
       
