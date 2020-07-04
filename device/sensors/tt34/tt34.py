@@ -1,161 +1,148 @@
 import RPi.GPIO as GPIO
 import time
 import numpy as np
+import json
 from scipy.interpolate import interp1d
 
-def setup():
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(4, GPIO.IN)
+def record(N_max, recording_time):
+    t = np.zeros(N_max)
+    state = np.zeros(N_max)
+    
+    i = 0
+    last_state = 0
 
-def detect_start(timeout, invert=False):   
+    t[i] = time.time()
+    state[i] = last_state
+
+    i += 1
     
-    t_initial = time.time()
-    t_min = 1.9 * 1038 * 1e-6
-    t_max = 2.1 * 1038 * 1e-6
-        
-    while time.time() - t_initial < timeout:
-        tic = time.time()
-        if invert:
+    while (time.time() - t[0] < recording_time) and (i < N_max):
+        if last_state == 0:
             GPIO.wait_for_edge(4, GPIO.FALLING)
+            last_state = 1
         else:
             GPIO.wait_for_edge(4, GPIO.RISING)
-            
-        toc = time.time()
+            last_state = 0
+
+        state[i] = last_state
+        t[i] = time.time()
+
+        i += 1
+
+    t -= t[0]
+
+    t = t[0:i]
+    state = state[0:i]
+    
+    return (t, state)
+
+def zoom(t, state, signal_length, minimum_low_dt):
+    
+    dt = np.diff(t)
+    idx_end = np.argmax(dt)
+    dt_max = dt[idx_end]
+    
+    if int(state[idx_end + 1]) == 1:
+        raise Exception('state dt max is high')
+    
+    if dt[idx_end] < minimum_low_dt:
+        raise Exception('minimum_low_dt not reached')
+    
+    if t[idx_end] - signal_length < 0.0:
+        raise Exception('signal_length not reached')
         
-        if ((toc - tic) < t_min) or (t_max < (toc - tic)):
-            continue
-        
-        tic = time.time()
-        if invert:
-            GPIO.wait_for_edge(4, GPIO.FALLING)
-        else:
-            GPIO.wait_for_edge(4, GPIO.RISING)
-        toc = time.time()
-        
-        if ((toc - tic) < t_min) or (t_max < (toc - tic)):
-            continue
-        
-        cycles = 0
-        
-        while time.time() - t_initial < timeout:
-            cycles += 1
-            
-            tic = time.time()
-            if invert:
-                GPIO.wait_for_edge(4, GPIO.FALLING)
-            else:
-                GPIO.wait_for_edge(4, GPIO.RISING)
-            toc = time.time()
-       
-            if (toc - tic) < t_max:
-                continue
-            else:
-                break
-            
-        if cycles < 10:
+    idx_zoom = (t[idx_end] - signal_length <= t) & (t <= t[idx_end])
+    
+    t_zoom = t[idx_zoom]
+    state_zoom = state[idx_zoom]
+    
+    return (t_zoom, state_zoom, dt_max)
+
+def get_start_index(t_data, data, period):
+    i = 0
+    
+    # get to the start of the the oscillations
+    while True:
+        next_dt = t_data[i + 2] - t_data[i]
+        if (0.8 * 2 * period < next_dt) and (next_dt < 1.2 * 2 * period):
             break
+        else:
+            i += 1
+            
+    # get to the end of the oscillations
+    while True:
+        next_dt = t_data[i + 2] - t_data[i]
+        if (0.8 * 2 * period < next_dt) and (next_dt < 1.2 * 2 * period):
+            i += 1
+        else:
+            break
+            
+    return i
+
+def interpolate_data(t_zoom, state_zoom, period):
+    t_data = np.arange(t_zoom[0] + period / 2, t_zoom[-1], period)
+    data = interp1d(t_zoom, state_zoom, kind='next')(t_data)
     
-    if time.time() - t_initial >= timeout:
-        return -1.0
-    else:
-        return tic
-    
-def parse_temperature(shift, data):
+    return (t_data, data)
+
+def parse_digit(data, shift):
     result = 0.0
        
     result += 1.0 * ((int(data[0 + shift]) << 0) + (int(data[1 + shift]) << 1) + (int(data[2 + shift]) << 2) + (int(data[3 + shift]) << 3))
 
     return result
-    
-def measure(timeout=10, invert=False):
-    start_time = detect_start(timeout, invert)
-    
-    if start_time < 0:
-        return None, None
-    
-    toc = time.time()
-    
-    if toc - start_time > 50 * 1e-3:
-        return None, None
-    
-    N = 50
-    t = np.zeros(N)
-    state4 = np.zeros(N)
 
-    i = 0
-    last_state = 1
+def parse(data):
     
-    t[i] = time.time()
-    state4[i] = last_state
+    shift = 22
     
-    i += 1
+    temperature = 0
+    address = 0
+    
+    if len(data) < shift + 4 + 2 + 4 + 4 + 4:
+        raise Exception('data length is too short')
 
-    while i < N:
-        if last_state == 0:
-            if invert:
-                GPIO.wait_for_edge(4, GPIO.FALLING)
-            else:
-                GPIO.wait_for_edge(4, GPIO.RISING)
-            last_state = 1
-        else:
-            if invert:
-                GPIO.wait_for_edge(4, GPIO.RISING)
-            else:
-                GPIO.wait_for_edge(4, GPIO.FALLING)
-            last_state = 0
-        
-        state4[i] = last_state
-        t[i] = time.time()
-        
-        if 51 * 1e-3 < t[i] - start_time:
-            t = t[0:i]
-            state4 = state4[0:i]
-            break
-        
-        i += 1
-        
-    t -= start_time
-            
-    t = np.append([0], t)
-    state4 = np.append([0], state4)
+    temperature += 0.1 * parse_digit(data, shift)
+    temperature += 1.0 * parse_digit(data, shift + 4)
+    temperature += 10.0 * parse_digit(data, shift + 4 + 2 + 4)
+    temperature += 100.0 * parse_digit(data, shift + 4 + 2 + 4 + 4)
     
-    
-    t_sample = np.arange(1038 * 1e-6 / 2, t[-1] - 2 * 1e-3, 1038 * 1e-6)
-    f_1 = interp1d(t, state4, kind='previous')
-    state_sample = f_1(t_sample)
-    
-    i = 22
-    
-    if len(state_sample) < i + 4 + 2 + 4 + 4 + 4:
-        return None, None
-    
-    result = 0
-    result += 0.1 * parse_temperature(shift=i, data=state_sample)
-    result += 1.0 * parse_temperature(shift=i + 4, data=state_sample)
-    result += 10.0 * parse_temperature(shift=i + 4 + 2 + 4, data=state_sample)
-    result += 100.0 * parse_temperature(shift=i + 4 + 2 + 4 + 4, data=state_sample)
-    
-    if result > 155:
-        return None, None
+    if temperature > 155:
+        raise Exception('temperature larger than 155 deg C')
         
     s = ''
-    for x in state_sample:
+    for x in data:
         s += str(int(x))
-
-    return (result, int(s[0:22], 2))
-
-if __name__ == '__main__':
-    setup()
     
-    while True:
-        tic = time.time()
-        temperature, address = measure(timeout=10, invert=True)
-        print('%1.1f s' % (time.time() - tic))
-        if temperature == None:
-            print('none')
-            print('')
-        else:
-            print('%1.1f deg C' % temperature)
-            print(address)
-            print('')
-            
+    address = int(s[1:shift], 2)
+    
+    return (temperature, address)
+
+def init_gpio():
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(4, GPIO.IN)
+    
+
+def get():
+    try:
+        N_max = 10000
+
+        recording_time = 6 # s
+
+        t, state = record(N_max, recording_time)
+
+        minimum_low_dt = 10 * 1e-3 # s
+        period = 1042 * 1e-6 # s
+        signal_length = 60 * period # s
+        t_zoom, state_zoom, dt_max = zoom(t, state, signal_length, minimum_low_dt)
+        
+        start_index = get_start_index(t_zoom, state_zoom, period)
+        t_zoom_started = t_zoom[start_index:]
+        state_zoom_started = state_zoom[start_index:]
+        t_data, data = interpolate_data(t_zoom_started, state_zoom_started, period)
+        data_inverted = 1 - data
+        
+        return parse(data_inverted)
+    except Exception as e:
+        print(format(e))
+        return (0, 0)

@@ -1,29 +1,42 @@
+#!/usr/bin/python
+
 import os
 import subprocess
-from tempfile import mkstemp
-from shutil import move, copymode
-from os import fdopen, remove
+import argparse
 
-python3_location = subprocess.check_output('which python3', shell=True).decode().strip()
+service_name = 'sht'
 
+python3_location = subprocess.check_output('which python3', shell=True).decode().rstrip('\r\n')
 service_dir = os.path.dirname(os.path.abspath(__file__))
 
+    
 print('pip3 install')
 os.system('pip3 install -r ' + service_dir + '/requirements.txt')
 
+content = '''
+[Unit]
+Description=Log sht reading to influxdb
+After=network.target
 
-print('Enable software i2c bus 3 in adafruit blinka')
+[Service]
+ExecStart=%s %s/sht-influx.py
+Restart=always
+TimeoutStopSec=30
 
-file_path = '/usr/local/lib/python3.7/dist-packages/adafruit_blinka/microcontroller/bcm283x/pin.py'
-fh, abs_path = mkstemp()
-with fdopen(fh,'w') as new_file:
-    with open(file_path) as old_file:
-        for line in old_file:
-            if '(1, SCL, SDA)' in line:
-                line = '    (3, 24, 23), (1, SCL, SDA), (0, D1, D0),\n'
-            new_file.write(line)
+[Install]
+WantedBy=multi-user.target
 
-copymode(file_path, abs_path)
-remove(file_path)
-move(abs_path, file_path)
+''' % (
+    python3_location, 
+    os.path.dirname(os.path.realpath(__file__))
+)
 
+print('write service file')
+with open(service_dir + '/' + service_name + '.service', 'w') as file:
+    file.write(content)
+    
+print('enable systemd service')
+os.system('systemctl enable ' + service_dir + '/' + service_name + '.service')
+
+print('start service')
+os.system('systemctl start ' + service_name)
