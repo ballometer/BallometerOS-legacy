@@ -1,2 +1,2 @@
-adafruit-circuitpython-charlcd
+RPLCD
 python-statemachine

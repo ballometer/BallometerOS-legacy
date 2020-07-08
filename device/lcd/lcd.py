@@ -7,6 +7,7 @@ import json
 from statemachine import StateMachine, State
 from wifi import scanWifis, knownWifis, connectWifi, deleteWifi, getIP, decodeName
 
+
 lcd_columns = 16
 lcd_rows = 2
 
