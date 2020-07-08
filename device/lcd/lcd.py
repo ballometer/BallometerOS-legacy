@@ -1,24 +1,18 @@
 import time
-import board
-import busio
-import adafruit_character_lcd.character_lcd_rgb_i2c as character_lcd
+from RPLCD.i2c import CharLCD
 import os
 import json
 from statemachine import StateMachine, State
 from wifi import scanWifis, knownWifis, connectWifi, deleteWifi, getIP, decodeName
-
+import bm_buttons
 
 lcd_columns = 16
 lcd_rows = 2
 
-i2c = busio.I2C(board.SCL, board.SDA)
-
-lcd = character_lcd.Character_LCD_RGB_I2C(i2c, lcd_columns, lcd_rows)
+lcd = CharLCD('PCF8574', 0x27)
+buttons = bm_buttons.Buttons()
 
 flight_id_path = os.path.dirname(os.path.realpath(__file__)) + '/flight_id.json'
-
-def any_button():
-    return lcd.up_button or lcd.down_button or lcd.left_button or lcd.right_button or lcd.select_button
 
 letters = [
 	' ',
@@ -30,6 +24,10 @@ letters = [
     '<', '=', '>', '@', '[', ']', '^', '_', '`', '{', '|', '}',
 	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 ]
+
+def await_unclick(buttons):
+    while buttons.any:
+        time.sleep(0.01)
 
 class BallometerLCD(StateMachine):
     
@@ -59,7 +57,7 @@ class BallometerLCD(StateMachine):
     # transitions
     
     greeting_to_home = greeting.to(home)
-    
+        
     home_to_menu_rec = home.to(menu_rec)
     
     menu_rec_to_wifi = menu_rec.to(menu_wifi)
@@ -113,60 +111,60 @@ class BallometerLCD(StateMachine):
             nickname = json.load(f)['nickname'].strip().upper()
         
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
-        lcd.message = 'BALLOMETER:\nHELLO ' + nickname
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string('BALLOMETER:\r\nHI ' + nickname)
         
-        time.sleep(1)
+        time.sleep(1.0)
         
     def on_home_to_menu_rec(self):
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
-        lcd.message = 'MENU:'          
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string('MENU:')          
         
     def on_rec_start_to_menu_rec(self):
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
-        lcd.message = 'MENU:'
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string('MENU:')
         
     def on_rec_stop_to_menu_rec(self):
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
-        lcd.message = 'MENU:'
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string('MENU:')
         
     def on_rec_continue_to_menu_rec(self):
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
-        lcd.message = 'MENU:'
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string('MENU:')
         
     def on_wifi_add_to_menu_wifi(self):
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
-        lcd.message = 'MENU:'
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string('MENU:')
         
     def on_wifi_delete_to_menu_wifi(self):
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
-        lcd.message = 'MENU:'
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string('MENU:')
         
     def on_menu_rec_to_rec_start(self):
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
-        lcd.message = 'REC:'
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string('REC:')
         
     def on_menu_wifi_to_wifi_add(self):
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
-        lcd.message = 'WIFI:'
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string('WIFI:')
         
     def on_choose_wifi_to_wifi_add(self):
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
-        lcd.message = 'WIFI:'
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string('WIFI:')
         
     def on_delete_wifi_to_wifi_delete(self):
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
-        lcd.message = 'WIFI:'
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string('WIFI:')
         
     def on_rec_start_to_home(self):
         data = {}
@@ -181,8 +179,8 @@ class BallometerLCD(StateMachine):
             json.dump(data, f)
         
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
-        lcd.message = 'START\nRECORDING...'
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string('START\r\nRECORDING...')
         time.sleep(0.75)
         
     def on_rec_stop_to_home(self):
@@ -197,8 +195,8 @@ class BallometerLCD(StateMachine):
             json.dump(data, f)
         
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
-        lcd.message = 'STOP\nRECORDING...'
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string('STOP\r\nRECORDING...')
         time.sleep(0.75)
         
     def on_rec_continue_to_home(self):
@@ -213,8 +211,8 @@ class BallometerLCD(StateMachine):
             json.dump(data, f)
         
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
-        lcd.message = 'CONTINUE\nRECORDING...'
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string('CONTINUE\r\nRECORDING...')
         time.sleep(0.75)
         
     # 
@@ -231,14 +229,14 @@ class BallometerLCD(StateMachine):
                     
         
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
+        lcd.cursor_pos = (0, 0)
         
         last_ip = getIP()
         
         if recording:
-            lcd.message = last_ip + '\n>MENU        REC' 
+            lcd.write_string(last_ip + '\r\n>MENU        REC')
         else:
-            lcd.message = last_ip + '\n>MENU'
+            lcd.write_string(last_ip + '\r\n>MENU')
 
         check_ip_interval = 10 # s
         last_ip_check = time.time()
@@ -248,16 +246,18 @@ class BallometerLCD(StateMachine):
         rec_blink = False
         rec_blink_last = time.time()
         
-        while not (lcd.right_button or lcd.select_button):
+        await_unclick(buttons)
+        
+        while not buttons.yes:
             if last_ip_check + check_ip_interval < time.time():
                 ip = getIP()
                 
                 if ip != last_ip:
                     last_ip = ip
-                    lcd.cursor_position(column=0, row=0)
+                    lcd.cursor_pos = (0, 0)
                     text = ip
                     text += ' ' * (lcd_columns - len(text))
-                    lcd.message = text
+                    lcd.write_string(text)
                     
                 last_ip_check = time.time()
                 
@@ -265,195 +265,213 @@ class BallometerLCD(StateMachine):
                 if rec_blink and (rec_blink_last + rec_blink_on_interval < time.time()):
                     rec_blink = False
                     rec_blink_last = time.time()
-                    lcd.cursor_position(column=12, row=1)
-                    lcd.message = ' '
+                    lcd.cursor_pos = (1, 12)
+                    lcd.write_string(' ')
                 if not rec_blink and (rec_blink_last + rec_blink_off_interval < time.time()):
                     rec_blink = True
                     rec_blink_last = time.time()
-                    lcd.cursor_position(column=12, row=1)
-                    lcd.message = '*'
+                    lcd.cursor_pos = (1, 12)
+                    lcd.write_string('*')
         
-        if lcd.right_button or lcd.select_button:
+        if buttons.yes:
             self.home_to_menu_rec()
             
     def on_enter_menu_rec(self):
-        lcd.cursor_position(column=0, row=1)
+        time.sleep(0.1)
+        lcd.cursor_pos = (1, 0)
         text = '>REC'
         text += ' ' * (lcd_columns - len(text))
-        lcd.message = text
+        lcd.write_string(text)
         
-        while not (lcd.select_button or lcd.right_button or lcd.down_button or lcd.left_button):
+        await_unclick(buttons)
+        
+        while not (buttons.down or buttons.yes or buttons.no):
             pass
         
-        if lcd.select_button or lcd.right_button:
+        if buttons.down:
+            self.menu_rec_to_wifi()
+        
+        if buttons.yes:
             self.menu_rec_to_rec_start()
             
-        if lcd.down_button:
-            self.menu_rec_to_wifi()
-            
-        if lcd.left_button:
+        if buttons.no:
             self.menu_rec_to_home()
             
     def on_enter_menu_wifi(self):
-        lcd.cursor_position(column=0, row=1)
+        lcd.cursor_pos = (1, 0)
         text = '>WIFI'
         text += ' ' * (lcd_columns - len(text))
-        lcd.message = text
+        lcd.write_string(text)
         
-        while not (lcd.up_button or lcd.left_button or lcd.right_button or lcd.select_button):
+        await_unclick(buttons)
+        
+        while not (buttons.up or buttons.yes or buttons.no):
             pass
         
-        if lcd.up_button:
+        if buttons.up:
             self.menu_wifi_to_rec()
              
-        if lcd.left_button:
+        if buttons.no:
             self.menu_wifi_to_home()
             
-        if lcd.right_button or lcd.select_button:
+        if buttons.yes:
             self.menu_wifi_to_wifi_add()
     
     def on_enter_rec_start(self):
-        lcd.cursor_position(column=0, row=1)
+        lcd.cursor_pos = (1, 0)
         text = '>START'
         text += ' ' * (lcd_columns - len(text))
-        lcd.message = text
+        lcd.write_string(text)
         
-        while not (lcd.down_button or lcd.select_button or lcd.right_button or lcd.left_button):
+        await_unclick(buttons)
+        
+        while not (buttons.down or buttons.yes or buttons.no):
             pass
         
-        if lcd.down_button:
+        if buttons.down:
             self.rec_start_to_stop()
             
-        if lcd.select_button or lcd.right_button:
+        if buttons.yes:
             self.rec_start_to_home()
             
-        if lcd.left_button:
+        if buttons.no:
             self.rec_start_to_menu_rec()
             
     def on_enter_rec_stop(self):
-        lcd.cursor_position(column=0, row=1)
+        lcd.cursor_pos = (1, 0)
         text = '>STOP'
         text += ' ' * (lcd_columns - len(text))
-        lcd.message = text
+        lcd.write_string(text)
         
-        while not any_button():
+        await_unclick(buttons)
+        
+        while not buttons.any:
             pass
         
-        if lcd.down_button:
+        if buttons.down:
             self.rec_stop_to_continue()
             
-        if lcd.up_button:
+        if buttons.up:
             self.rec_stop_to_start()
             
-        if lcd.select_button or lcd.right_button:
+        if buttons.yes:
             self.rec_stop_to_home()
             
-        if lcd.left_button:
+        if buttons.no:
             self.rec_stop_to_menu_rec()
         
     def on_enter_rec_continue(self):
-        lcd.cursor_position(column=0, row=1)
+        lcd.cursor_pos = (1, 0)
         text = '>CONTINUE'
         text += ' ' * (lcd_columns - len(text))
-        lcd.message = text
+        lcd.write_string(text)
         
-        while not (lcd.up_button or lcd.right_button or lcd.select_button or lcd.left_button):
+        await_unclick(buttons)
+        
+        while not (buttons.up or buttons.yes or buttons.no):
             pass
         
-        if lcd.up_button:
+        if buttons.up:
             self.rec_continue_to_stop()
             
-        if lcd.select_button or lcd.right_button:
+        if buttons.yes:
             self.rec_continue_to_home()
         
-        if lcd.left_button:
+        if buttons.no:
             self.rec_continue_to_menu_rec()
             
     def on_enter_wifi_add(self):
-        lcd.cursor_position(column=0, row=1)
+        lcd.cursor_pos = (1, 0)
         text = '>ADD'
         text += ' ' * (lcd_columns - len(text))
-        lcd.message = text
+        lcd.write_string(text)
             
-        while not (lcd.down_button or lcd.left_button or lcd.right_button or lcd.select_button):
+        await_unclick(buttons)
+        
+        while not (buttons.down or buttons.yes or buttons.no):
             pass
         
-        if lcd.left_button:
-            self.wifi_add_to_menu_wifi()
-            
-        if lcd.down_button:
+        if buttons.down:
             self.wifi_add_to_delete()
             
-        if lcd.right_button or lcd.select_button:
+        if buttons.yes:
             self.wifi_add_to_choose_wifi()
             
+        if buttons.no:
+            self.wifi_add_to_menu_wifi()
+            
     def on_enter_wifi_delete(self):
-        lcd.cursor_position(column=0, row=1)
+        lcd.cursor_pos = (1, 0)
         text = '>DELETE'
         text += ' ' * (lcd_columns - len(text))
-        lcd.message = text
+        lcd.write_string(text)
         
-        while not (lcd.up_button or lcd.left_button or lcd.right_button or lcd.select_button):
+        await_unclick(buttons)
+        
+        while not (buttons.up or buttons.yes or buttons.no):
             pass
         
-        if lcd.left_button:
-            self.wifi_delete_to_menu_wifi()
-            
-        if lcd.up_button:
+        if buttons.up:
             self.wifi_delete_to_add()
-        
-        if lcd.right_button or lcd.select_button:
+            
+        if buttons.yes:
             self.wifi_delete_to_delete_wifi()
+            
+        if buttons.no:
+            self.wifi_delete_to_menu_wifi()
             
     def on_enter_choose_wifi(self):
         
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
-        lcd.message = 'SCANNING...'
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string('SCANNING...')
         
         wifis = scanWifis()
         
         if len(wifis) == 0:
             lcd.clear()
-            lcd.cursor_position(column=0, row=0)
-            text = 'NO WIFI\nFOUND...'
-            lcd.message = text
+            lcd.cursor_pos = (0, 0)
+            text = 'NO WIFI\r\nFOUND...'
+            lcd.write_string(text)
             time.sleep(2)
             self.choose_wifi_to_wifi_add()
             
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
+        lcd.cursor_pos = (0, 0)
         text = 'CHOOSE WIFI:'
-        lcd.message = text
+        lcd.write_string(text)
             
         i = 0
         
+        await_unclick(buttons)
         while True:
-            lcd.cursor_position(column=0, row=1)
+            lcd.cursor_pos = (1, 0)
             text = '>' + decodeName(wifis[i])
             text += ' ' * (lcd_columns - len(text))
-            lcd.message = text
+            lcd.write_string(text)
             
+           
+            await_unclick(buttons)
             while True:
-                
-                if (i > 0) and lcd.up_button:
+                 
+                if (i > 0) and buttons.up:
                     i -= 1
                     break
                 
-                if (i < len(wifis) - 1) and lcd.down_button:
+                if (i < len(wifis) - 1) and buttons.down:
                     i += 1
                     break
                 
-                if lcd.select_button or lcd.left_button or lcd.right_button:
+                if buttons.yes or buttons.no:
                     break
                 
-            if lcd.select_button or lcd.left_button or lcd.right_button:
+            if buttons.yes or buttons.no:
                 break
             
-        if lcd.left_button:
+        if buttons.no:
             self.choose_wifi_to_wifi_add()
             
-        if lcd.select_button or lcd.right_button:
+        if buttons.yes:
             self.ssid = wifis[i]
             self.choose_wifi_to_password_wifi()
                 
@@ -461,26 +479,29 @@ class BallometerLCD(StateMachine):
             
     def on_enter_password_wifi(self):
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
+        lcd.cursor_pos = (0, 0)
         text = 'PASSWORD:'
-        lcd.message = text
+        lcd.write_string(text)
         
-        password_codes = [0 for _ in range(lcd_columns)]
+        password_max_length = 64
+        password_codes = [0 for _ in range(password_max_length)]
         
         cursor = 0
-        lcd.cursor = True
+        shift = 0
         
-        lcd.cursor_position(cursor, 1)
+        lcd.cursor_mode = 'line'
         
+        lcd.cursor_pos = (1, cursor)
+        
+        await_unclick(buttons)
         while True:
             while True:
                 begin_press = True
-                while lcd.up_button:
-                    password_codes[cursor] = password_codes[cursor] + 1
-                    password_codes[cursor] %= len(letters)
-                    lcd.cursor_position(column=cursor, row=1)
-                    lcd.message = letters[password_codes[cursor]]
-                    lcd.cursor_position(column=cursor, row=1)
+                while buttons.up:
+                    password_codes[cursor + shift] = password_codes[cursor + shift] + 1
+                    password_codes[cursor + shift] %= len(letters)
+                    lcd.write_string(letters[password_codes[cursor + shift]])
+                    lcd.cursor_pos = (1, cursor)
                     
                     if begin_press:
                         time.sleep(0.2)
@@ -489,12 +510,11 @@ class BallometerLCD(StateMachine):
                         time.sleep(0.05)
                     
                     
-                while lcd.down_button:
-                    password_codes[cursor] = password_codes[cursor] - 1
-                    password_codes[cursor] %= len(letters)
-                    lcd.cursor_position(column=cursor, row=1)
-                    lcd.message = letters[password_codes[cursor]]
-                    lcd.cursor_position(column=cursor, row=1)
+                while buttons.down:
+                    password_codes[cursor + shift] = password_codes[cursor + shift] - 1
+                    password_codes[cursor + shift] %= len(letters)
+                    lcd.write_string(letters[password_codes[cursor + shift]])
+                    lcd.cursor_pos = (1, cursor)
                     
                     if begin_press:
                         time.sleep(0.2)
@@ -502,46 +522,70 @@ class BallometerLCD(StateMachine):
                     else:
                         time.sleep(0.05)
                         
-                if lcd.left_button and (cursor > 0):
-                    cursor -= 1
-                    lcd.cursor_position(cursor, 1)
-                    time.sleep(0.3)
+                if buttons.left:
+                    if cursor > 0:
+                        cursor -= 1
+                        lcd.cursor_pos = (1, cursor)
+                        time.sleep(0.3)
+                        break
+                    elif cursor + shift > 0:
+                        shift -= 1
+                        lcd.cursor_pos = (1, 0)
+                        text = ''.join([letters[code] for code in password_codes[shift:(shift + lcd_columns)]])
+                        lcd.write_string(text)
+                        lcd.cursor_pos = (1, cursor)
+                        time.sleep(0.3)
+                        break        
+                
+                if buttons.right:
+                    if cursor < lcd_columns - 1:
+                        cursor += 1
+                        lcd.cursor_pos = (1, cursor)
+                        time.sleep(0.3)
+                        break
+                    elif cursor + shift < password_max_length - 1:
+                        shift += 1
+                        lcd.cursor_pos = (1, 0)
+                        text = ''.join([letters[code] for code in password_codes[shift:(shift + lcd_columns)]])
+                        lcd.write_string(text)
+                        lcd.cursor_pos = (1, cursor)
+                        time.sleep(0.3)
+                        break              
+                
+                if buttons.a or buttons.b:
                     break
                 
-                if lcd.right_button and (cursor < lcd_columns - 1):
-                    cursor += 1
-                    lcd.cursor_position(cursor, 1)
-                    time.sleep(0.3)
-                    break
-                    
-                if lcd.select_button:
-                    break
-                
-            if lcd.select_button:
+            if buttons.a:
                 self.password = ''.join([letters[code] for code in password_codes]).strip()
                 break
+            
+            if buttons.b:
+                lcd.cursor_mode = 'hide'
+                lcd.clear()
+                lcd.cursor_pos = (0, 0)
+                lcd.write_string('CANCEL...')
+                time.sleep(1)
+                self.password_wifi_to_home()
                 
-        lcd.cursor = False
+        lcd.cursor_mode = 'hide'
         
         lcd.clear()
-        lcd.cursor_position(0, 0)
-        lcd.message = 'CONNECTING...'
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string('CONNECTING...')
         time.sleep(0.75)
         
         connected = connectWifi(self.ssid, self.password)
         
-        
         if connected:
             lcd.clear()
-            lcd.cursor_position(0, 0)
-            lcd.message = 'PASSWORD OK'
+            lcd.cursor_pos = (0, 0)
+            lcd.write_string('PASSWORD OK')
             time.sleep(1)
             self.password_wifi_to_home()
         else:
-            
             lcd.clear()
-            lcd.cursor_position(0, 0)
-            lcd.message = 'PASSWORD WRONG'
+            lcd.cursor_pos = (0, 0)
+            lcd.write_string('PASSWORD WRONG')
             time.sleep(1)
             self.password_wifi_to_home()
         
@@ -556,50 +600,52 @@ class BallometerLCD(StateMachine):
         
         if len(wifis) == 0:
             lcd.clear()
-            lcd.cursor_position(column=0, row=0)
-            text = 'NO WIFI\nSTORED...'
-            lcd.message = text
+            lcd.cursor_pos = (0, 0)
+            text = 'NO WIFI\r\nSTORED...'
+            lcd.write_string(text)
             time.sleep(2)
             self.delete_wifi_to_wifi_delete()
             
         lcd.clear()
-        lcd.cursor_position(column=0, row=0)
+        lcd.cursor_pos = (0, 0)
         text = 'DELETE WIFI:'
-        lcd.message = text
+        lcd.write_string(text)
             
         i = 0
         
+        await_unclick(buttons)
         while True:
-            lcd.cursor_position(column=0, row=1)
+            lcd.cursor_pos = (1, 0)
             text = '>' + decodeName(wifis[i])
             text += ' ' * (lcd_columns - len(text))
-            lcd.message = text
+            lcd.write_string(text)
             
+            await_unclick(buttons)
             while True:
                 
-                if (i > 0) and lcd.up_button:
+                if (i > 0) and buttons.up:
                     i -= 1
                     break
                 
-                if (i < len(wifis) - 1) and lcd.down_button:
+                if (i < len(wifis) - 1) and buttons.down:
                     i += 1
                     break
                 
-                if lcd.select_button or lcd.left_button or lcd.right_button:
+                if buttons.yes or buttons.no:
                     break
                 
-            if lcd.select_button or lcd.left_button or lcd.right_button:
+            if buttons.yes or buttons.no:
                 break
             
-        if lcd.left_button:
+        if buttons.no:
             self.delete_wifi_to_wifi_delete()
             
-        if lcd.select_button or lcd.right_button:
+        if buttons.yes:
             deleteWifi(wifis[i])
             lcd.clear()
-            lcd.cursor_position(column=0, row=0)
-            text = 'DELETED:\n' + wifis[i]
-            lcd.message = text
+            lcd.cursor_pos = (0, 0)
+            text = 'DELETED:\r\n' + wifis[i]
+            lcd.write_string(text)
             time.sleep(2)
             self.delete_wifi_to_home()
             

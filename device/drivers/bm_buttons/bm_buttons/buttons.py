@@ -42,3 +42,15 @@ class Buttons:
     @property
     def b(self):
         return not GPIO.input(self._b)
+    
+    @property
+    def any(self):
+        return self.up or self.down or self.left or self.right or self.a or self.b
+    
+    @property
+    def yes(self):
+        return self.a or self.right
+    
+    @property
+    def no(self):
+        return self.b or self.left
