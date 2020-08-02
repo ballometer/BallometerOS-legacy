@@ -17,3 +17,4 @@ cp package/busybox/mdev.conf ${TARGET_DIR}/etc/mdev.conf
  
 cp board/ballometer/interfaces ${TARGET_DIR}/etc/network/interfaces
 cp board/ballometer/wpa_supplicant.conf ${TARGET_DIR}/etc/wpa_supplicant.conf
+cp board/ballometer/sshd_config ${TARGET_DIR}/etc/ssh/sshd_config
