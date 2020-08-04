@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 """
 
+Copied from https://github.com/ishahak/buildroot_scanpypi3
+
 Utility for building Buildroot packages for existing PyPI packages
 
 Any package built by scanpypi should be manually checked for
