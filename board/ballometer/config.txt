@@ -30,6 +30,11 @@ dtoverlay=miniuart-bt
 dtparam=i2c_arm=on
 dtoverlay=i2c-gpio,bus=3
 
+disable_splash=1
+dtoverlay=sdtweak,overclock_50=100
+boot_delay=0
+force_turbo=1
+
 include select.txt
 
 gpio=18,25=ip,pu
