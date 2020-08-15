@@ -1,0 +1,6 @@
+config BR2_PACKAGE_PYTHON_SETUPTOOLS_SCM
+	bool "python-setuptools-scm"
+	help
+	  setuptools_scm handles managing your Python package versions in SCM metadata instead of declaring them as the version argument or in a SCM managed file.
+
+	  https://pypi.org/project/setuptools-scm/
