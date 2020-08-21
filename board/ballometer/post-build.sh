@@ -24,6 +24,3 @@ cp board/ballometer/cmdline-p3.txt output/images/rpi-firmware/cmdline-p3.txt
 cp board/ballometer/config.txt output/images/rpi-firmware/config.txt
 cp board/ballometer/select.txt output/images/rpi-firmware/select.txt
 
-cp board/ballometer/S60i2c ${TARGET_DIR}/etc/init.d/S60i2c
-chmod 755 ${TARGET_DIR}/etc/init.d/S60i2c
-
