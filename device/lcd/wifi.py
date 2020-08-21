@@ -94,8 +94,7 @@ def scanWifis():
     return wifis
 
 def connectWifi(ssid, password):
-    success = False
-
+ 
     deleteWifi(ssid)
     
     with open(path_wpa_supplicant, 'a') as f:
@@ -110,19 +109,4 @@ def connectWifi(ssid, password):
 
         f.close()
 
-    result = ''
-    try:
-        result = subprocess.run(['wpa_cli', '-i', 'wlan0', 'reconfigure'], stdout=subprocess.PIPE).stdout.decode('utf-8')
-    except:
-        print('wpa_cli did not work')
-
-    if 'OK' in result:
-        success = True
-    else:
-        success = False
-
-    if not success:
-        deleteWifi(ssid)
-
-    return success
-
+    subprocess.run(['wpa_cli', '-i', 'wlan0', 'reconfigure'], stdout=subprocess.PIPE).stdout.decode('utf-8')
