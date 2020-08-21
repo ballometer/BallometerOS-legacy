@@ -69,20 +69,28 @@ def deleteWifi(ssid):
 
 def scanWifis():
     wifis = []
-    result = ''
-    try:
-        result = subprocess.run(['iwlist', 'wlan0', 'scan'], stdout=subprocess.PIPE).stdout.decode('utf-8')
-    except:
-        print('iwlist did not work')
 
+    attempts = 0
+    while attempts < 10:
+        attempts += 1
+        result = subprocess.run(['wpa_cli', '-i', 'wlan0', 'scan'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+        if 'OK' in result:
+            break
+        time.sleep(1)
+        
+    if 'FAIL-BUSY' in result:
+        return []
+    
+    result = subprocess.run(['wpa_cli', '-i', 'wlan0', 'scan_results'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+    
     lines = result.splitlines()
+    
     for line in lines:
-        line = line.strip()
-        if 'ESSID' in line:
-            ssid = line[7:-1]
-            if ssid != '':
+        tab_index = line.rfind('\t')
+        if tab_index > 0:
+            ssid = line[tab_index:].strip()
+            if ssid != '' and ssid not in wifis:
                 wifis.append(ssid)
-
     return wifis
 
 def connectWifi(ssid, password):
