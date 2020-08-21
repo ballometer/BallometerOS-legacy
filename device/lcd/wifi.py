@@ -24,7 +24,7 @@ def getIP():
     m = re.search('inet (\S*) ', lines)
     
     if m != None:
-        ip = m.group(0)[5:].strip()
+        ip = m.group(0)[10:].strip()
         
     return ip
 
