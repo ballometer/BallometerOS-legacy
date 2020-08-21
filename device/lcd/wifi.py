@@ -5,7 +5,7 @@ import codecs
 
 path_wpa_supplicant = '/etc/wpa_supplicant.conf'
 
-def decodeName(name):
+def decode_name(name):
     def match_function(matchobj):
         snippet = matchobj.group(0)
         hex_1 = snippet[2:4]
@@ -18,7 +18,7 @@ def decodeName(name):
 
     return re.sub(r'(\\x[0-9a-fA-F]{2}){2,3}', match_function, name)
 
-def getIP():
+def get_ip():
     ip = ''
     
     lines = subprocess.run(['ifconfig', 'wlan0'], stdout=subprocess.PIPE).stdout.decode('utf-8')
@@ -30,7 +30,7 @@ def getIP():
         
     return ip
 
-def knownWifis():
+def known():
     wifis = []
 
     lines = []
@@ -46,7 +46,7 @@ def knownWifis():
     return wifis
 
 
-def deleteWifi(ssid):
+def remove(ssid):
     lines = []
     with open(path_wpa_supplicant, 'r') as f:
         lines = f.read().splitlines()
@@ -67,7 +67,7 @@ def deleteWifi(ssid):
         print('wpa_cli did not work')
 
 
-def scanWifis():
+def scan():
     wifis = []
 
     attempts = 0
@@ -93,9 +93,9 @@ def scanWifis():
                 wifis.append(ssid)
     return wifis
 
-def connectWifi(ssid, password):
+def add(ssid, password):
  
-    deleteWifi(ssid)
+    remove(ssid)
     
     with open(path_wpa_supplicant, 'a') as f:
         lines = []
