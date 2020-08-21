@@ -3,6 +3,8 @@ import subprocess
 import re
 import codecs
 
+path_wpa_supplicant = '/etc/wpa_supplicant.conf'
+
 def decodeName(name):
     def match_function(matchobj):
         snippet = matchobj.group(0)
@@ -32,21 +34,21 @@ def knownWifis():
     wifis = []
 
     lines = []
-    with open('/etc/wpa_supplicant/wpa_supplicant.conf', 'r') as f:
+    with open(path_wpa_supplicant, 'r') as f:
         lines = f.read().splitlines()
     
     for line in lines:
         if 'ssid' in line:
-            wifis.append(line.strip()[7:-1])
-            
-    
+            result = re.search('"(.*)"', line)
+            if hasattr(result, 'group'):
+                wifis.append(result.group(1))  
 
     return wifis
 
 
 def deleteWifi(ssid):
     lines = []
-    with open('/etc/wpa_supplicant/wpa_supplicant.conf', 'r') as f:
+    with open(path_wpa_supplicant, 'r') as f:
         lines = f.read().splitlines()
     
     for i in range(len(lines)):
@@ -54,7 +56,7 @@ def deleteWifi(ssid):
             del lines[(i - 1):(i + 3)]
             break
 
-    with open('/etc/wpa_supplicant/wpa_supplicant.conf', 'w') as f:
+    with open(path_wpa_supplicant, 'w') as f:
         for line in lines:
             f.write(line + '\n')
         f.close()
@@ -88,7 +90,7 @@ def connectWifi(ssid, password):
 
     deleteWifi(ssid)
     
-    with open('/etc/wpa_supplicant/wpa_supplicant.conf', 'a') as f:
+    with open(path_wpa_supplicant, 'a') as f:
         lines = []
         lines.append('network={')
         lines.append('\tssid=P"' + ssid + '"')
