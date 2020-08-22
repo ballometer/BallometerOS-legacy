@@ -13,7 +13,6 @@ lcd_rows = 2
 lcd = CharLCD('PCF8574', 0x27)
 buttons = buttons.Buttons()
 
-flight_id_path = os.path.dirname(os.path.realpath(__file__)) + '/flight_id.json'
 
 letters = [
 	' ',
@@ -105,15 +104,10 @@ class BallometerLCD(StateMachine):
     # 
     
     def on_greeting_to_home(self):
-        nickname = ''
-        nickname_path = os.path.dirname(os.path.realpath(__file__)) + '/nickname.json'
-        
-        with open(nickname_path) as f:
-            nickname = json.load(f)['nickname'].strip().upper()
-        
+
         lcd.clear()
         lcd.cursor_pos = (0, 0)
-        lcd.write_string('BALLOMETER:\r\nHI ' + nickname)
+        lcd.write_string('BALLOMETER:\r\nHI ')
         
         time.sleep(1.0)
         
@@ -169,15 +163,9 @@ class BallometerLCD(StateMachine):
         
     def on_rec_start_to_home(self):
         data = {}
-        
-        with open(flight_id_path) as f:
-            data = json.load(f)
-            
-        data['flight_id'] = int(data['flight_id']) + 1
+           
+        data['flight_id'] = 0
         data['recording'] = True
-        
-        with open(flight_id_path, 'w') as f:
-            json.dump(data, f)
         
         lcd.clear()
         lcd.cursor_pos = (0, 0)
@@ -187,13 +175,7 @@ class BallometerLCD(StateMachine):
     def on_rec_stop_to_home(self):
         data = {}
         
-        with open(flight_id_path) as f:
-            data = json.load(f)
-            
         data['recording'] = False
-        
-        with open(flight_id_path, 'w') as f:
-            json.dump(data, f)
         
         lcd.clear()
         lcd.cursor_pos = (0, 0)
@@ -203,13 +185,9 @@ class BallometerLCD(StateMachine):
     def on_rec_continue_to_home(self):
         data = {}
         
-        with open(flight_id_path) as f:
-            data = json.load(f)
             
         data['recording'] = True
         
-        with open(flight_id_path, 'w') as f:
-            json.dump(data, f)
         
         lcd.clear()
         lcd.cursor_pos = (0, 0)
@@ -223,10 +201,6 @@ class BallometerLCD(StateMachine):
     def on_enter_home(self):
         
         recording = False
-        
-        with open(flight_id_path) as f:
-            data = json.load(f)
-            recording = data['recording']
                     
         
         lcd.clear()
@@ -575,24 +549,9 @@ class BallometerLCD(StateMachine):
         lcd.write_string('CONNECTING...')
         time.sleep(0.75)
         
-        connected = wifi.add(self.ssid, self.password)
+        wifi.add(self.ssid, self.password)
         
-        if connected:
-            lcd.clear()
-            lcd.cursor_pos = (0, 0)
-            lcd.write_string('PASSWORD OK')
-            time.sleep(1)
-            self.password_wifi_to_home()
-        else:
-            lcd.clear()
-            lcd.cursor_pos = (0, 0)
-            lcd.write_string('PASSWORD WRONG')
-            time.sleep(1)
-            self.password_wifi_to_home()
-        
-        
-            
-                    
+        self.password_wifi_to_home()
                     
                         
                     
@@ -660,13 +619,8 @@ def turn_off_recording():
         'recording': False
     }
 
-    with open(flight_id_path) as f:
-        data = json.load(f)
         
     data['recording'] = False
-                
-    with open(flight_id_path, 'w') as f:
-        json.dump(data, f) 
         
         
 turn_off_recording()
