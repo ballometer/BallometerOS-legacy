@@ -1,6 +1,0 @@
-__pycache__
-*.service
-*.egg-info
-.ipynb_checkpoints
-*.ipynb
-*.pyc
