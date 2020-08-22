@@ -197,8 +197,8 @@ class LSM303_Accel:  # pylint:disable=too-many-instance-attributes
 
     _BUFFER = bytearray(6)
 
-    def __init__(self, i2c):
-        self._accel_device = I2CDevice(i2c, _ADDRESS_ACCEL)
+    def __init__(self, i2c, address=_ADDRESS_ACCEL):
+        self._accel_device = I2CDevice(i2c, address)
         self.i2c_device = self._accel_device
         self._data_rate = 2
         self._enable_xyz = 0b111
