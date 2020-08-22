@@ -148,7 +148,7 @@ spiPorts = (
 uartPorts = ((1, TXD, RXD),)
 
 i2cPorts = (
-    (3, SCL, SDA),
+    (3, 24, 23), # patch to support software i2c on pins 24, 23 on the ballometer
     (1, SCL, SDA),
     (0, D1, D0),  # both pi 1 and pi 2 i2c ports!
 )
