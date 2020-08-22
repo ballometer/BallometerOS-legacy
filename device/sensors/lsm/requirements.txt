@@ -1,2 +1,0 @@
-adafruit-circuitpython-lsm303-accel
-adafruit-circuitpython-lsm303dlh-mag
