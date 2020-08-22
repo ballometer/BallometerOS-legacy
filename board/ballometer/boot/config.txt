@@ -25,7 +25,7 @@ gpu_mem_512=100
 gpu_mem_1024=100
 
 # fixes rpi (3B, 3B+, 3A+, 4B and Zero W) ttyAMA0 serial console
-dtoverlay=miniuart-bt
+#dtoverlay=miniuart-bt
 
 dtparam=i2c_arm=on
 dtoverlay=i2c-gpio,bus=3
@@ -34,6 +34,7 @@ disable_splash=1
 dtoverlay=sdtweak,overclock_50=100
 boot_delay=0
 force_turbo=1
+enable_uart=1
 
 include select.txt
 
