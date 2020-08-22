@@ -3,14 +3,15 @@ from RPLCD.i2c import CharLCD
 import os
 import json
 from statemachine import StateMachine, State
-from wifi import scanWifis, knownWifis, connectWifi, deleteWifi, getIP, decodeName
-import bm_buttons
+
+import wifi
+import buttons
 
 lcd_columns = 16
 lcd_rows = 2
 
 lcd = CharLCD('PCF8574', 0x27)
-buttons = bm_buttons.Buttons()
+buttons = buttons.Buttons()
 
 flight_id_path = os.path.dirname(os.path.realpath(__file__)) + '/flight_id.json'
 
@@ -231,7 +232,7 @@ class BallometerLCD(StateMachine):
         lcd.clear()
         lcd.cursor_pos = (0, 0)
         
-        last_ip = getIP()
+        last_ip = wifi.get_ip()
         
         if recording:
             lcd.write_string(last_ip + '\r\n>MENU        REC')
@@ -250,7 +251,7 @@ class BallometerLCD(StateMachine):
         
         while not buttons.yes:
             if last_ip_check + check_ip_interval < time.time():
-                ip = getIP()
+                ip = wifi.get_ip()
                 
                 if ip != last_ip:
                     last_ip = ip
@@ -426,7 +427,7 @@ class BallometerLCD(StateMachine):
         lcd.cursor_pos = (0, 0)
         lcd.write_string('SCANNING...')
         
-        wifis = scanWifis()
+        wifis = wifi.scan()
         
         if len(wifis) == 0:
             lcd.clear()
@@ -446,7 +447,7 @@ class BallometerLCD(StateMachine):
         await_unclick(buttons)
         while True:
             lcd.cursor_pos = (1, 0)
-            text = '>' + decodeName(wifis[i])
+            text = '>' + wifi.decode_name(wifis[i])
             text += ' ' * (lcd_columns - len(text))
             lcd.write_string(text)
             
@@ -574,7 +575,7 @@ class BallometerLCD(StateMachine):
         lcd.write_string('CONNECTING...')
         time.sleep(0.75)
         
-        connected = connectWifi(self.ssid, self.password)
+        connected = wifi.add(self.ssid, self.password)
         
         if connected:
             lcd.clear()
@@ -596,7 +597,7 @@ class BallometerLCD(StateMachine):
                         
                     
     def on_enter_delete_wifi(self):
-        wifis = knownWifis()
+        wifis = wifi.known()
         
         if len(wifis) == 0:
             lcd.clear()
@@ -616,7 +617,7 @@ class BallometerLCD(StateMachine):
         await_unclick(buttons)
         while True:
             lcd.cursor_pos = (1, 0)
-            text = '>' + decodeName(wifis[i])
+            text = '>' + wifi.decode_name(wifis[i])
             text += ' ' * (lcd_columns - len(text))
             lcd.write_string(text)
             
@@ -641,7 +642,7 @@ class BallometerLCD(StateMachine):
             self.delete_wifi_to_wifi_delete()
             
         if buttons.yes:
-            deleteWifi(wifis[i])
+            wifi.remove(wifis[i])
             lcd.clear()
             lcd.cursor_pos = (0, 0)
             text = 'DELETED:\r\n' + wifis[i]
