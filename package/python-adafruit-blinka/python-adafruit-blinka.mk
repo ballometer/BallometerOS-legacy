@@ -11,4 +11,11 @@ PYTHON_ADAFRUIT_BLINKA_SETUP_TYPE = setuptools
 PYTHON_ADAFRUIT_BLINKA_LICENSE = MIT
 PYTHON_ADAFRUIT_BLINKA_LICENSE_FILES = LICENSE
 
+define PYTHON_ADAFRUIT_BLINKA_PRE_PATCH_FIXUP
+	echo "patch adafruit blinka to support software i2c on ports 24, 23"
+	cp $(PYTHON_ADAFRUIT_BLINKA_PKGDIR)/pin.py $(O)/build/python-adafruit-blinka-5.2.3/src/adafruit_blinka/microcontroller/bcm283x/pin.py
+endef
+
+PYTHON_ADAFRUIT_BLINKA_PRE_PATCH_HOOKS += PYTHON_ADAFRUIT_BLINKA_PRE_PATCH_FIXUP
+
 $(eval $(python-package))
