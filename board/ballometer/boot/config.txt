@@ -9,7 +9,7 @@
 start_file=start.elf
 fixup_file=fixup.dat
 
-kernel=zImage
+kernel=Image
 
 # To use an external initramfs file
 #initramfs rootfs.cpio.gz
@@ -47,3 +47,6 @@ cmdline=cmdline-p2.txt
 # User presses on button B, boot in partition p3
 [gpio25=0]
 cmdline=cmdline-p3.txt
+
+# enable 64bits support
+arm_64bit=1
