@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-INFLUXDB_VERSION = 1.8.1
+INFLUXDB_VERSION = 1.8.2
 INFLUXDB_SOURCE = influxdb-$(INFLUXDB_VERSION)_linux_arm64.tar.gz
 INFLUXDB_SITE =  https://dl.influxdata.com/influxdb/releases
 INFLUXDB_LICENSE = MIT
