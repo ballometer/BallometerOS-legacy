@@ -13,7 +13,7 @@ BR2_TOOLCHAIN_BUILDROOT_WCHAR=y
 
 BR2_TARGET_GENERIC_ROOT_PASSWD="hello"
 
-BR2_ROOTFS_OVERLAY="board/ballometer/overlay"
+BR2_ROOTFS_OVERLAY="board/ballometer/rootfs-overlay"
 BR2_ROOTFS_POST_BUILD_SCRIPT="board/ballometer/post-build.sh"
 BR2_ROOTFS_POST_IMAGE_SCRIPT="board/ballometer/post-image.sh"
 
