@@ -38,6 +38,9 @@ force_turbo=1
 
 include select.txt
 
+# enable 64bits support
+arm_64bit=1
+
 gpio=18,25=ip,pu
 
 # User presses on button A, boot in partition p2
@@ -47,6 +50,3 @@ cmdline=cmdline-p2.txt
 # User presses on button B, boot in partition p3
 [gpio25=0]
 cmdline=cmdline-p3.txt
-
-# enable 64bits support
-arm_64bit=1
