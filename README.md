@@ -25,7 +25,7 @@ cd buildroot
 make ballometer_defconfig
 ```
 
-Create a file called ```./board/ballometer/data/etc/wpa_supplicant.conf``` and fill it with your wifi details:
+Create a file called ```board/ballometer/data/wpa_supplicant.conf``` and fill it with your wifi details:
 ```
 ctrl_interface=/var/run/wpa_supplicant
 ap_scan=1
