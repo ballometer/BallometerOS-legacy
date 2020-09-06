@@ -1,0 +1,4 @@
+config BR2_PACKAGE_BALLOMETER_UPDATE
+    bool "ballometer_update"
+    help
+        Full system update with dual partition boot on the ballometer.
