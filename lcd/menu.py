@@ -74,21 +74,15 @@ def menu(params):
     lcd.write_string('MENU')
     
     items = ['REC', 'WIFI']
-    
-    buttons.await_unclick()
-    
-    item = items[_((lcd=lcd, buttons=buttons, items=items)]
+    item = items[_choose(lcd=lcd, buttons=buttons, items=items)]
     
     if buttons.no:
         return home, params
     
     if item == 'REC':
         return rec, params
-    elif item == 'WIFI':
-        return wifi, params
-    else:
-        # raise error
-        pass
+    
+    return wifi, params
     
 def rec(params):
     lcd = params['lcd']
@@ -102,7 +96,7 @@ def rec(params):
     
     buttons.await_unclick()
     
-    item = items[_((lcd=lcd, buttons=buttons, items=items)]
+    item = items[_choose(lcd=lcd, buttons=buttons, items=items)]
     
     if buttons.no:
         return menu, params
@@ -137,15 +131,15 @@ def wifi(params):
     
     buttons.await_unclick()
     
-    item = items[_((lcd=lcd, buttons=buttons, items=items)]
+    item = items[_choose(lcd=lcd, buttons=buttons, items=items)]
     
     if buttons.no:
         return menu, params
     
     if item == 'ADD':
         return wifi_add, params
-    elif item == 'DELETE':
-        return wifi_delete, params
+    
+    return wifi_delete, params
     
 def wifi_add(params):
     lcd = params['lcd']
@@ -298,9 +292,9 @@ def wifi_delete(params):
     w = params['wifi']
     buttons = params['buttons']
     
-    wifis = w.known()
+    ssids = w.known()
         
-    if len(wifis) == 0:
+    if len(ssids) == 0:
         lcd.clear()
         lcd.cursor_pos = (0, 0)
         text = 'NO WIFI\r\nSTORED...'
@@ -313,15 +307,15 @@ def wifi_delete(params):
     text = 'DELETE WIFI:'
     lcd.write_string(text)
         
-    i = _choose((lcd=lcd, buttons=buttons, items=wifis)
+    i = _choose(lcd=lcd, buttons=buttons, items=[w.decode_name(name) for name in ssids])
         
     if buttons.no:
         return wifi, params
         
-    w.remove(wifis[i])
+    w.remove(ssids[i])
     lcd.clear()
     lcd.cursor_pos = (0, 0)
-    text = 'DELETED:\r\n' + wifis[i]
+    text = 'DELETED:\r\n' + ssids[i]
     lcd.write_string(text)
     time.sleep(2)
     
