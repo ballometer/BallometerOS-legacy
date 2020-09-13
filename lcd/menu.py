@@ -42,7 +42,7 @@ def home(params):
     
     return menu, params
 
-def choose(lcd, buttons, items=['item1', 'item2']):
+def _choose(lcd, buttons, items=['item1', 'item2']):
     i = 0
     while True:
         lcd.cursor_pos = (1, 0)
@@ -77,7 +77,7 @@ def menu(params):
     
     buttons.await_unclick()
     
-    item = items[choose(lcd=lcd, buttons=buttons, items=items)]
+    item = items[_((lcd=lcd, buttons=buttons, items=items)]
     
     if buttons.no:
         return home, params
@@ -102,7 +102,7 @@ def rec(params):
     
     buttons.await_unclick()
     
-    item = items[choose(lcd=lcd, buttons=buttons, items=items)]
+    item = items[_((lcd=lcd, buttons=buttons, items=items)]
     
     if buttons.no:
         return menu, params
@@ -137,7 +137,7 @@ def wifi(params):
     
     buttons.await_unclick()
     
-    item = items[choose(lcd=lcd, buttons=buttons, items=items)]
+    item = items[_((lcd=lcd, buttons=buttons, items=items)]
     
     if buttons.no:
         return menu, params
@@ -173,7 +173,7 @@ def wifi_add(params):
     
     ssids_decoded = [w.decode_name(name) for name in ssids]
     
-    i = choose(lcd=lcd, buttons=buttons, items=ssids_decoded)
+    i = _choose(lcd=lcd, buttons=buttons, items=ssids_decoded)
     
     if buttons.no:
         return wifi, params
@@ -313,7 +313,7 @@ def wifi_delete(params):
     text = 'DELETE WIFI:'
     lcd.write_string(text)
         
-    i = choose(lcd=lcd, buttons=buttons, items=wifis)
+    i = _choose((lcd=lcd, buttons=buttons, items=wifis)
         
     if buttons.no:
         return wifi, params
