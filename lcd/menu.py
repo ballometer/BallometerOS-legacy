@@ -1,5 +1,28 @@
 import time
 
+def _choose(lcd, buttons, items=['item1', 'item2']):
+    i = 0
+    while True:
+        lcd.cursor_pos = (1, 0)
+        text = '>' + items[i]
+        text += ' ' * (lcd.columns - len(text))
+        lcd.write_string(text)
+    
+        buttons.await_unclick()
+        
+        while True:
+                
+            if (i > 0) and buttons.up:
+                i -= 1
+                break
+            
+            if (i < len(items) - 1) and buttons.down:
+                i += 1
+                break
+            
+            if buttons.yes or buttons.no:
+                return i
+            
 def startup(params):
     lcd = params['lcd']
     
@@ -41,29 +64,6 @@ def home(params):
             last_ip_check = time.time()
     
     return menu, params
-
-def _choose(lcd, buttons, items=['item1', 'item2']):
-    i = 0
-    while True:
-        lcd.cursor_pos = (1, 0)
-        text = '>' + items[i]
-        text += ' ' * (lcd.columns - len(text))
-        lcd.write_string(text)
-    
-        buttons.await_unclick()
-        
-        while True:
-                
-            if (i > 0) and buttons.up:
-                i -= 1
-                break
-            
-            if (i < len(items) - 1) and buttons.down:
-                i += 1
-                break
-            
-            if buttons.yes or buttons.no:
-                return i
             
 def menu(params):
     lcd = params['lcd']
