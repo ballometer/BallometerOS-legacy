@@ -1,4 +1,5 @@
 import RPi.GPIO as GPIO
+import time
 
 class Buttons:
     
@@ -54,3 +55,8 @@ class Buttons:
     @property
     def no(self):
         return self.b or self.left
+    
+    def await_unclick(self):
+        while not self.any:
+            time.sleep(0.001)
+            
