@@ -9,8 +9,6 @@
 start_file=start.elf
 fixup_file=fixup.dat
 
-kernel=Image
-
 # To use an external initramfs file
 #initramfs rootfs.cpio.gz
 
@@ -45,8 +43,12 @@ gpio=18,25=ip,pu
 
 # User presses on button A, boot in partition p2
 [gpio18=0]
+kernel=Image-p2
+overlay_prefix=overlays-p2/
 cmdline=cmdline-p2.txt
 
 # User presses on button B, boot in partition p3
 [gpio25=0]
+kernel=Image-p3
+overlay_prefix=overlays-p3/
 cmdline=cmdline-p3.txt
