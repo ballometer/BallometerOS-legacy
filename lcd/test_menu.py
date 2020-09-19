@@ -54,9 +54,20 @@ class Buttons:
     @property
     def no(self):
         return self.left or self.b
+    @property
+    def any(self):
+        return self.up or self.down or self.left or self.right or self.a or self.b
+    
+class Update:
+    def get_current_release(self):
+        return ''
+    def get_releases(self):
+        return []
+    def install(self, release='v1.0.0', update_callback=lambda text: ()):
+        pass    
     
 def test_startup():
-    fn, _ = menu.startup({'lcd': LCD()})
+    fn, _ = menu.startup({'lcd': LCD(), 'update': Update()})
     assert fn == menu.home
     
 def test_home():
@@ -230,4 +241,27 @@ def test_wifi_delete():
         
     fn, _ = menu.wifi_delete({'lcd': LCD(), 'buttons': B2(), 'wifi': W1()})
     assert fn == menu.wifi
+
+def test_update():
+    fn, _ = menu.update({'lcd': LCD(), 'buttons': Buttons(), 'update': Update()})
+    assert fn == menu.menu
     
+    class U1(Update):
+        def get_releases(self):
+            return ['v1.0.0', 'v1.0.1']
+        
+    class B1(Buttons):
+        @property
+        def b(self):
+            return self._tic + 2.3 < time.time() < self._tic + 2.4
+
+    fn, _ = menu.update({'lcd': LCD(), 'buttons': B1(), 'update': U1()})
+    assert fn == menu.menu
+    
+    class B2(Buttons):
+        @property
+        def a(self):
+            return self._tic + 2.3 < time.time() < self._tic + 2.4
+
+    fn, _ = menu.update({'lcd': LCD(), 'buttons': B2(), 'update': U1()})
+    assert fn == menu.home

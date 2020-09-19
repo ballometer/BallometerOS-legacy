@@ -2,6 +2,9 @@ import time
 
 def _choose(lcd, buttons, items=['item1', 'item2']):
     i = 0
+    if len(items) == 0:
+        return i
+    
     while True:
         lcd.cursor_pos = (1, 0)
         text = '>' + items[i]
@@ -25,11 +28,15 @@ def _choose(lcd, buttons, items=['item1', 'item2']):
             
 def startup(params):
     lcd = params['lcd']
+    u = params['update']
     
     lcd.clear()
-    lcd.cursor_pos = (0, 0)
     lcd.write_string('HELLO FROM\r\nBALLOMETER')    
-    time.sleep(1.0) 
+    time.sleep(1.0)
+    
+    lcd.clear()
+    lcd.write_string('CURRENT RELEASE\r\n' + u.get_current_release())    
+    time.sleep(1.0)
     
     return home, params
     
@@ -73,7 +80,7 @@ def menu(params):
     lcd.cursor_pos = (0, 0)
     lcd.write_string('MENU')
     
-    items = ['REC', 'WIFI']
+    items = ['REC', 'WIFI', 'UPDATE']
     item = items[_choose(lcd=lcd, buttons=buttons, items=items)]
     
     if buttons.no:
@@ -82,7 +89,10 @@ def menu(params):
     if item == 'REC':
         return rec, params
     
-    return wifi, params
+    if item == 'WIFI':
+        return wifi, params
+    
+    return update, params
     
 def rec(params):
     lcd = params['lcd']
@@ -320,3 +330,52 @@ def wifi_delete(params):
     time.sleep(2)
     
     return home, params
+
+def update(params):
+    lcd = params['lcd']
+    buttons = params['buttons']
+    u = params['update']
+    
+    current_release = u.get_current_release()
+    
+    lcd.clear()
+    lcd.write_string('CURRENT RELEASE:\r\n' + current_release)
+    time.sleep(2)
+    
+    releases = u.get_releases()
+    
+    if len(releases) == 0:
+        lcd.clear()
+        lcd.write_string('NO RELEASES\r\nAVAILABLE...')
+        time.sleep(2)
+        return menu, params
+    
+    lcd.clear()
+    lcd.write_string('CHOOSE RELEASE\r\n')
+    
+    release = releases[_choose(lcd, buttons, releases)]
+    
+    if buttons.no:
+        return menu, params
+    
+    lcd.clear()
+    lcd.write_string('INSTALLING...\r\n')
+    
+    def update_callback(text):
+        lcd.cursor_pos = (1, 0)
+        text += ' ' * (lcd.columns - len(text))
+        lcd.write_string(text)
+        if buttons.no:
+            raise u.UpdateError('Abort installation by user')
+
+    u.install(release=release, update_callback=update_callback)
+
+    while not buttons.any:
+        lcd.clear()
+        lcd.write_string('UPDATE WAS\r\nSUCESSFUL')
+        time.sleep(1)
+        lcd.clear()
+        lcd.write_string('PLEASE RESTART\r\nNOW')
+        time.sleep(1)
+        
+    return home, params    
