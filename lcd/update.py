@@ -54,12 +54,25 @@ class Update:
         xz_pipe.wait()        
         dd_pipe.wait()
             
-    def get_checksum(self, passive_partition='/dev/mmcblk0p3'):
+    def get_checksum_rootfs(self, passive_partition='/dev/mmcblk0p3'):
         result = ''
         self._run('mount ' + passive_partition + ' /passive')
         tar_pipe = subprocess.Popen(['tar', 'c', '/passive'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        result = subprocess.check_output('md5sum', stdin=tar_pipe.stdout).decode().split(' ')[0]
+        result = subprocess.check_output('sha3sum', stdin=tar_pipe.stdout).decode().split(' ')[0]
         self._run('umount /passive')
+        return result
+
+    def get_checksum_boot(self, passive_partition='/dev/mmcblk0p3'):
+        result = ''
+        self._run('mount -t vfat /dev/mmcblk0p1 /boot')
+
+        folder = '/boot/os-p2'
+        if passive_partition == '/dev/mmcblk0p3':
+            folder = '/boot/os-p3'
+
+        tar_pipe = subprocess.Popen(['tar', 'c', '.', '-C', folder], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        result = subprocess.check_output('sha3sum', stdin=tar_pipe.stdout).decode().split(' ')[0]
+        self._run('umount /boot')
         return result
 
     def flash_boot_select(self, passive_partition='/dev/mmcblk0p3'):
