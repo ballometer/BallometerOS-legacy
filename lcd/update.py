@@ -127,6 +127,9 @@ class Update:
         if passive_partition == '/dev/mmcblk0p3':
             folder = '/boot/os-p3'
             
+        self._run('rm -rf ' + folder)
+        self._run('mkdir ' + folder)
+            
         try:
             url = 'https://github.com/wipfli/buildroot/releases/download/' + release + '/boot.tar.xz'
             r = requests.get(url, stream=True, timeout=10)
