@@ -34,3 +34,11 @@ def test_remove():
     w = wifi.WiFi()
     w.remove('android-ballometer')
     
+if __name__ == '__main__':
+    test_decode_name()
+    test_get_ip()
+    test_scan()
+    test_add()
+    test_known()
+    test_remove()
+    
