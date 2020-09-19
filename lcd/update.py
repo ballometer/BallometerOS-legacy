@@ -22,11 +22,15 @@ class Update:
         else:
             raise UpdateError('Passive partition not found')
 
-    def download(self, 
-                url='https://github.com/wipfli/buildroot/releases/download/v0.1.0/rootfs.ext2.xz', 
-                passive_partition='/dev/mmcblk0p3',
-                progress_callback=lambda percentage: (), 
-                total_size=1):
+    def download_checksums(self,
+                           url='https://github.com/wipfli/buildroot/releases/download/v0.1.0/checksums.json'):
+        return {'rootfs': '...', 'boot': '...'}
+
+    def download_rootfs(self, 
+                        url='https://github.com/wipfli/buildroot/releases/download/v0.1.0/rootfs.ext2.xz', 
+                        passive_partition='/dev/mmcblk0p3',
+                        progress_callback=lambda percentage: (), 
+                        total_size=1):
         
         r = requests.get(url, stream=True, timeout=10)
         
@@ -53,6 +57,11 @@ class Update:
         xz_pipe.stdin.close()
         xz_pipe.wait()        
         dd_pipe.wait()
+        
+    def download_boot(self, 
+                      url='https://github.com/wipfli/buildroot/releases/download/v0.1.0/boot.ext2.xz',
+                      passive_partition='/dev/mmcblk0p3'):
+        pass
             
     def get_checksum_rootfs(self, passive_partition='/dev/mmcblk0p3'):
         result = ''
