@@ -172,8 +172,8 @@ class Update:
         if passive_partition == '/dev/mmcblk0p3':
             folder = '/boot/os-p3'
 
-        tar_pipe = subprocess.Popen(['tar', 'c', '.', '-C', folder], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        result = subprocess.check_output('sha3sum', stdin=tar_pipe.stdout).decode().split(' ')[0]
+        find_pipe = subprocess.Popen(['find', '.', '-exec', 'sha3sum', '{}', '\\;'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=folder)
+        result = subprocess.check_output('sha3sum', stdin=find_pipe.stdout).decode().split(' ')[0]
         self._run('umount /boot')
         return result
 
