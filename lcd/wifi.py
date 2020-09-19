@@ -68,7 +68,7 @@ class WiFi:
             print('wpa_cli did not work')
 
 
-    def scan(self):
+    def _single_scan(self):
         wifis = []
 
         attempts = 0
@@ -93,7 +93,13 @@ class WiFi:
                 if ssid != '' and ssid not in wifis:
                     wifis.append(ssid)
         return wifis
-
+    
+    def scan(self):
+        result = []
+        for _ in range(3):
+            result.extend(self._single_scan())
+        return list(set(result))    
+        
     def add(self, ssid, password):
     
         self.remove(ssid)
