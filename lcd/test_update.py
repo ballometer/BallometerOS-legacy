@@ -61,7 +61,11 @@ def test_get_checksum_boot():
     '''
     u = update.Update()
     checksum = u._get_checksum_boot(passive_partition='/dev/mmcblk0p3')
+<<<<<<< HEAD
     assert checksum == '...'
+=======
+    assert checksum == '19f7cc8c95438d774bb86ca2e0c0442eb48efa047881def43bc3009f'
+>>>>>>> Update checksum in test_update.py
     
 def test_flash_boot_select():
     '''
