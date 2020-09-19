@@ -59,6 +59,8 @@ class Buttons:
         return self.up or self.down or self.left or self.right or self.a or self.b
     
 class Update:
+    class UpdateError(Exception):
+        pass
     def get_current_release(self):
         return ''
     def get_releases(self):
@@ -264,4 +266,20 @@ def test_update():
             return self._tic + 2.3 < time.time() < self._tic + 2.4
 
     fn, _ = menu.update({'lcd': LCD(), 'buttons': B2(), 'update': U1()})
+    assert fn == menu.home
+    
+    class U2(Update):
+        def get_releases(self):
+            raise self.UpdateError('error')
+
+    fn, _ = menu.update({'lcd': LCD(), 'buttons': B2(), 'update': U2()})
+    assert fn == menu.home
+    
+    class U3(Update):
+        def get_releases(self):
+            return ['v1.0.0', 'v1.0.1']
+        def install(self, release='v1.0.0', update_callback=lambda text: ()):
+            raise self.UpdateError('error')
+        
+    fn, _ = menu.update({'lcd': LCD(), 'buttons': B2(), 'update': U3()})
     assert fn == menu.home

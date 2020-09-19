@@ -342,7 +342,14 @@ def update(params):
     lcd.write_string('CURRENT RELEASE:\r\n' + current_release)
     time.sleep(2)
     
-    releases = u.get_releases()
+    try:
+        releases = u.get_releases()
+    except u.UpdateError:
+        lcd.clear()
+        lcd.write_string('Update Error')
+        while not buttons.any:
+            time.sleep(0.01)
+        return home, params
     
     if len(releases) == 0:
         lcd.clear()
@@ -368,7 +375,14 @@ def update(params):
         if buttons.no:
             raise u.UpdateError('Abort installation by user')
 
-    u.install(release=release, update_callback=update_callback)
+    try:
+        u.install(release=release, update_callback=update_callback)
+    except u.UpdateError:
+        lcd.clear()
+        lcd.write_string('Update Error')
+        while not buttons.any:
+            time.sleep(0.01)
+        return home, params
 
     while not buttons.any:
         lcd.clear()
