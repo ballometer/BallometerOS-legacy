@@ -3,14 +3,18 @@
 set -u
 set -e
 
-cp board/ballometer/boot/cmdline-p2.txt ${O}/images/rpi-firmware/cmdline-p2.txt
-cp board/ballometer/boot/cmdline-p3.txt ${O}/images/rpi-firmware/cmdline-p3.txt
-cp board/ballometer/boot/config.txt ${O}/images/rpi-firmware/config.txt
-cp board/ballometer/boot/select.txt ${O}/images/rpi-firmware/select.txt
+rm -rf ${O}/images/os-p2
+mkdir ${O}/images/os-p2
+cp ${O}/images/bcm2710-rpi-3-b-plus.dtb ${O}/images/os-p2/bcm2710-rpi-3-b-plus.dtb
+cp -R ${O}/images/rpi-firmware/overlays ${O}/images/os-p2/overlays
+touch ${O}/images/os-p2/overlays/README
+cp ${O}/images/Image ${O}/images/os-p2/Image
+
+cp board/ballometer/boot/cmdline-p2.txt ${O}/images/os-p2/cmdline-p2.txt
+cp board/ballometer/boot/cmdline-p3.txt ${O}/images/os-p2/cmdline-p3.txt
+cp board/ballometer/boot/config.txt ${O}/images/config.txt
+cp board/ballometer/boot/select.txt ${O}/images/select.txt
 
 rm -f ${O}/images/data.ext4 ${O}/images/data.ext2
 ${O}/host/sbin/mkfs.ext4 -d board/ballometer/data -r 1 -N 0 -m 5 -L "data" -O ^64bit ${O}/images/data.ext2 "100M"
 ln -sf data.ext2 ${O}/images/data.ext4
-
-cp ${O}/images/Image ${O}/images/Image-p2
-cp -R ${O}/images/rpi-firmware/overlays ${O}/images/rpi-firmware/overlays-p2

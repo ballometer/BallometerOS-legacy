@@ -1,3 +1,2 @@
-kernel=Image-p2
-overlay_prefix=overlays-p2/
 cmdline=cmdline-p2.txt
+os_prefix=os-p2/
