@@ -158,7 +158,7 @@ class Update:
             
     def _get_checksum_rootfs(self, passive_partition='/dev/mmcblk0p3'):
         result = ''
-        self._run('mount ' + passive_partition + ' /passive')
+        self._run('mount -o ro ' + passive_partition + ' /passive')
         tar_pipe = subprocess.Popen(['tar', 'c', '/passive'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         result = subprocess.check_output('sha3sum', stdin=tar_pipe.stdout).decode().split(' ')[0]
         self._run('umount /passive')
