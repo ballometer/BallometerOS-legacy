@@ -15,7 +15,13 @@ class Update:
             raise self.UpdateError('CalledProcessError')
     
     def get_current_release(self):
-        return 'v1.0.1'
+        try:
+            with open('/root/release.json') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            raise self.UpdateError('FileNotFoundError')
+        except json.JSONDecodeError:
+            raise self.UpdateError('JSONDecodeError')
     
     def get_releases(self):
         result = []
