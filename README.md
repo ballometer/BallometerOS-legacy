@@ -56,3 +56,25 @@ make
 
 This creates a bootable image in ```output/images/sdcard.img```.
 
+## Create Release Files
+
+A release contains the following files
+ * ```rootfs.ext2.xz```
+ * ```boot.tar.xz```
+ * ```checksums.json```
+
+To create ```rootfs.ext2.xz``` run:
+```bash
+cd output/images
+xz -kv9 rootfs.ext2
+```
+To create ```boot.tar.xz``` run:
+```bash
+cd output/images/os-p2
+tar -cf ../boot.tar .
+cd ..
+xz -kv9 boot.tar
+```
+The checksums file ```checksums.json``` is created by running on the ballometer device after the installation a function of the update process. These checksums are meant to check for file integrity *after* the installation.
+
+
