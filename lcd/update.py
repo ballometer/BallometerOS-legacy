@@ -202,11 +202,11 @@ class Update:
                               progress_callback=progress_callback,
                               total_size=total_size)
         
-        update_callback('DOWNLOAD BOOT...')
+        update_callback('DOWNLOAD BOOT')
         
         self._download_boot(release=release, passive_partition=passive_partition)
         
-        update_callback('GET CHECKSUMS...')
+        update_callback('MAKE CHECKSUMS')
         checksums = self._download_checksums(release=release)
         checksum_rootfs = self._get_checksum_rootfs(passive_partition)
         checksum_boot = self._get_checksum_boot(passive_partition=passive_partition)

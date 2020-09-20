@@ -57,6 +57,6 @@ class Buttons:
         return self.b or self.left
     
     def await_unclick(self):
-        while not self.any:
+        while self.any:
             time.sleep(0.001)
             

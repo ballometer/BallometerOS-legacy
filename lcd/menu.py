@@ -36,7 +36,7 @@ def startup(params):
     
     lcd.clear()
     lcd.write_string('CURRENT RELEASE\r\n' + u.get_current_release())    
-    time.sleep(1.0)
+    time.sleep(1.5)
     
     return home, params
     
@@ -126,7 +126,8 @@ def rec(params):
         lcd.clear()
         lcd.cursor_pos = (0, 0)
         lcd.write_string('STOP REC...')
-    
+    time.sleep(2)
+
     return home, params
     
 def wifi(params):
@@ -379,17 +380,24 @@ def update(params):
         u.install(release=release, update_callback=update_callback)
     except u.UpdateError:
         lcd.clear()
-        lcd.write_string('Update Error')
-        while not buttons.any:
+        lcd.write_string('UPDATE ERROR')
+        while not buttons.yes:
             time.sleep(0.01)
         return home, params
 
     while not buttons.any:
         lcd.clear()
-        lcd.write_string('UPDATE WAS\r\nSUCESSFUL')
-        time.sleep(1)
+        lcd.write_string('UPDATE WAS\r\nSUCESSFUL...')
+        for _ in range(200):
+            if buttons.any:
+                break
+            time.sleep(0.01)
+        
         lcd.clear()
-        lcd.write_string('PLEASE RESTART\r\nNOW')
-        time.sleep(1)
+        lcd.write_string('PLEASE\r\nRESTART NOW.')
+        for _ in range(200):
+            if buttons.any:
+                break
+            time.sleep(0.01)
         
     return home, params    
