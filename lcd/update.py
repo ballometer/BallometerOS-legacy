@@ -15,7 +15,7 @@ class Update:
             raise self.UpdateError('CalledProcessError')
     
     def get_current_release(self):
-        return 'v1.0.0'
+        return 'v1.0.1'
     
     def get_releases(self):
         result = []
