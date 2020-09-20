@@ -229,7 +229,10 @@ class Update:
         
         self._flash_boot_select(passive_partition=passive_partition)
         
-        
+    def create_checksums_json(self, passive_partition='/dev/mmcblk0p3'):
+        checksum_rootfs = self._get_checksum_rootfs(passive_partition=passive_partition)
+        checksum_boot = self._get_checksum_boot(passive_partition=passive_partition)
+        return json.dumps({'rootfs': checksum_rootfs, 'boot': checksum_boot})
         
         
         

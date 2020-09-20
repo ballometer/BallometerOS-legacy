@@ -82,6 +82,13 @@ def test_install():
     u.install(release='v1.0.0',
               update_callback=lambda text: print(text))
     
+def test_create_checksums_json():
+    '''
+    This test assumes that the active partition is /dev/mmcblk0p2.
+    '''
+    u = update.Update()
+    assert 'rootfs' in u.create_checksums_json(passive_partition='/dev/mmcblk0p3')
+    
 if __name__ == '__main__':
     test_run()
     test_get_current_release()
@@ -95,3 +102,5 @@ if __name__ == '__main__':
     test_get_checksum_boot()
     test_flash_boot_select()
     test_install()
+    test_create_checksums_json()
+    
