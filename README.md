@@ -58,6 +58,15 @@ This creates a bootable image in ```output/images/sdcard.img```.
 
 ## Create Release Files
 
+Write the tag name into a file that will appear at ```/root/release.json``` and give a tag to the latest commit with:
+
+```bash
+echo "\"v1.2.4\"" > board/ballometer/rootfs-overlay/root/release.json
+git commit -m "Bump to version v1.2.4" board/ballometer/rootfs-overlay/root/release.json
+git tag -a v1.2.4 -m "Add new features"
+git push --follow-tags
+```
+
 A release contains the following files
  * ```rootfs.ext2.xz```
  * ```boot.tar.xz```
@@ -76,5 +85,4 @@ cd ..
 xz -kv9 boot.tar
 ```
 The checksums file ```checksums.json``` is created by running on the ballometer device after the installation a function of the update process. These checksums are meant to check for file integrity *after* the installation.
-
 
