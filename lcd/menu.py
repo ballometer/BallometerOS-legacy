@@ -337,7 +337,14 @@ def update(params):
     buttons = params['buttons']
     u = params['update']
     
-    current_release = u.get_current_release()
+    try:
+        current_release = u.get_current_release()
+    except u.UpdateError:
+        lcd.clear()
+        lcd.write_string('UPDATE ERROR')
+        while not buttons.yes:
+            time.sleep(0.01)
+        return home, params
     
     lcd.clear()
     lcd.write_string('CURRENT RELEASE:\r\n' + current_release)
