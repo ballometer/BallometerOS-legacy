@@ -10,7 +10,7 @@ def test_columns():
     
 def test_cursor_mode():
     l = lcd.LCD()
-    assert l._cursor_mode == 'hide'
+    assert l.cursor_mode == 'hide'
     l.cursor_mode = 'hide'
     
 def test_clear():
