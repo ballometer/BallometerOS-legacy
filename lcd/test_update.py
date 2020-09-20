@@ -83,11 +83,8 @@ def test_install():
               update_callback=lambda text: print(text))
     
 def test_create_checksums_json():
-    '''
-    This test assumes that the active partition is /dev/mmcblk0p2.
-    '''
     u = update.Update()
-    assert 'rootfs' in u.create_checksums_json(passive_partition='/dev/mmcblk0p3')
+    assert 'rootfs' in u.create_checksums_json()
     
 if __name__ == '__main__':
     test_run()
