@@ -1,4 +1,4 @@
-import lcd2 as lcd
+import lcd
   
 def test_cursor_pos():
     l = lcd.LCD()
