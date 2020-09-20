@@ -1,0 +1,4 @@
+config BR2_PACKAGE_BALLOMETER
+    bool "ballometer"
+    help
+        The ballometer is a sensor box for hot air balloons. 
