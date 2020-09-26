@@ -122,4 +122,6 @@ class WiFi:
         with open(path_wpa_supplicant, 'w') as f:
             f.write('ctrl_interface=/var/run/wpa_supplicant\n')
             f.write('ap_scan=1\n\n')
+            
+        subprocess.run(['wpa_cli', '-i', 'wlan0', 'reconfigure'], stdout=subprocess.PIPE).stdout.decode('utf-8')
         
