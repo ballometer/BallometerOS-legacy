@@ -23,6 +23,8 @@ class WiFi:
         return []
     def remove(self, ssid):
         pass
+    def reset(self):
+        pass
     
 class Buttons:
     def __init__(self):
@@ -155,6 +157,18 @@ def test_wifi():
     fn, _ = menu.wifi({'lcd': LCD(), 'buttons': B3()})
     assert fn == menu.menu
     
+    class B4(Buttons):
+        @property
+        def down(self):
+            return (self._tic + 0.1 < time.time() < self._tic + 0.2) or (self._tic + 0.3 < time.time() < self._tic + 0.4)
+        
+        @property
+        def right(self):
+            return self._tic + 0.5 < time.time() < self._tic + 0.6
+        
+    fn, _ = menu.wifi({'lcd': LCD(), 'buttons': B4()})
+    assert fn == menu.wifi_reset
+    
 def test_wifi_add():
     class B1(Buttons):
         @property
@@ -243,6 +257,37 @@ def test_wifi_delete():
         
     fn, _ = menu.wifi_delete({'lcd': LCD(), 'buttons': B2(), 'wifi': W1()})
     assert fn == menu.wifi
+    
+def test_wifi_reset():
+            
+    class B1(Buttons):
+        @property
+        def b(self):
+            return self._tic + 0.1 < time.time() < self._tic + 0.2
+        
+    fn, _ = menu.wifi_reset({'lcd': LCD(), 'buttons': B1(), 'wifi': WiFi()})
+    assert fn == menu.wifi
+    
+    class B2(Buttons):
+        @property
+        def a(self):
+            return self._tic + 0.1 < time.time() < self._tic + 0.2
+        
+    fn, _ = menu.wifi_reset({'lcd': LCD(), 'buttons': B2(), 'wifi': WiFi()})
+    assert fn == menu.wifi
+    
+    class B3(Buttons):
+        @property
+        def down(self):
+            return self._tic + 0.1 < time.time() < self._tic + 0.2
+        
+        @property
+        def a(self):
+            return self._tic + 0.3 < time.time() < self._tic + 0.4
+        
+    fn, _ = menu.wifi_reset({'lcd': LCD(), 'buttons': B3(), 'wifi': WiFi()})
+    assert fn == menu.home
+    
 
 def test_update():
     fn, _ = menu.update({'lcd': LCD(), 'buttons': Buttons(), 'update': Update()})

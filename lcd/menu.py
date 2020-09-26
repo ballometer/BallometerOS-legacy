@@ -138,7 +138,7 @@ def wifi(params):
     lcd.cursor_pos = (0, 0)
     lcd.write_string('WIFI')
     
-    items = ['ADD', 'DELETE']
+    items = ['ADD', 'DELETE', 'RESET']
     
     buttons.await_unclick()
     
@@ -150,7 +150,10 @@ def wifi(params):
     if item == 'ADD':
         return wifi_add, params
     
-    return wifi_delete, params
+    if item == 'DELETE':
+        return wifi_delete, params
+    
+    return wifi_reset, params
     
 def wifi_add(params):
     lcd = params['lcd']
@@ -328,6 +331,33 @@ def wifi_delete(params):
     lcd.cursor_pos = (0, 0)
     text = 'DELETED:\r\n' + ssids[i]
     lcd.write_string(text)
+    time.sleep(2)
+    
+    return home, params
+
+def wifi_reset(params):
+    lcd = params['lcd']
+    w = params['wifi']
+    buttons = params['buttons']
+    
+    lcd.clear()
+    lcd.cursor_pos = (0, 0)
+    text = 'RESET WIFI?'
+    lcd.write_string(text)
+        
+    items = ['NO', 'YES']
+    i = _choose(lcd=lcd, buttons=buttons, items=items)
+        
+    if buttons.no or items[i] == 'NO':
+        return wifi, params
+        
+    lcd.clear()
+    lcd.cursor_pos = (0, 0)
+    text = 'RESETTING\r\nWIFI...'
+    lcd.write_string(text)
+    
+    w.reset()
+    
     time.sleep(2)
     
     return home, params
