@@ -120,6 +120,6 @@ class WiFi:
 
     def reset(self):
         with open(path_wpa_supplicant, 'w') as f:
-            f.write('ctrl_interface=/var/run/wpa_supplicant')
-            f.wirte('ap_scan=1')
+            f.write('ctrl_interface=/var/run/wpa_supplicant\n')
+            f.write('ap_scan=1\n\n')
         
