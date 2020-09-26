@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-BALLOMETER_VERSION = 1.0.2
+BALLOMETER_VERSION = 1.0.3
 BALLOMETER_SOURCE = v$(BALLOMETER_VERSION).tar.gz
 BALLOMETER_SITE = https://github.com/wipfli/ballometer/archive
 BALLOMETER_LICENSE = MIT
