@@ -11,17 +11,17 @@ class LSM:
     @property
     def accel_x(self):
         '''returns the acceleration in the x-direction in m/s2'''
-        return self._sensor_accel.acceleration[0]
+        return round(self._sensor_accel.acceleration[0], 3)
     
     @property
     def accel_y(self):
         '''returns the acceleration in the y-direction in m/s2'''
-        return self._sensor_accel.acceleration[1]
+        return round(self._sensor_accel.acceleration[1], 3)
     
     @property
     def accel_z(self):
         '''returns the acceleration in the z-direction in m/s2'''
-        return self._sensor_accel.acceleration[2]
+        return round(self._sensor_accel.acceleration[2], 3)
     
     @property
     def mag_x(self):

@@ -9,10 +9,10 @@ class SHT:
     def temperature(self):
         '''returns the temperature in Kelvin'''
         T = self._sensor.temperature # deg C
-        return T + 273.15 # K
+        return round(T + 273.15, 2) # K
     
     @property
     def humidity(self):
         '''returns the relative humidity in percent'''
         RH = self._sensor.relative_humidity # percent
-        return RH # percent
+        return round(RH, 1) # percent

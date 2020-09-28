@@ -9,12 +9,12 @@ class BMP:
     def temperature(self):
         '''returns the temperature in Kelvin'''
         T = self._sensor.temperature # deg C
-        return T + 273.15 # K
+        return round(T + 273.15, 2) # K
     
     @property
     def pressure(self):
         '''returns the pressure in Pa'''
         p = self._sensor.pressure # hPa
-        return p * 1e2 # Pa
+        return round(p * 1e2, 1) # Pa
 
    
