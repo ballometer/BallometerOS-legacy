@@ -1,5 +1,5 @@
 import time
-import menu
+import ballometer.menu
 
 class LCD:
     cursor_pos = (0, 0)
@@ -71,8 +71,8 @@ class Update:
         pass    
     
 def test_startup():
-    fn, _ = menu.startup({'lcd': LCD(), 'update': Update()})
-    assert fn == menu.home
+    fn, _ = ballometer.menu.startup({'lcd': LCD(), 'update': Update()})
+    assert fn == ballometer.menu.home
     
 def test_home():
     class B(Buttons):
@@ -80,8 +80,8 @@ def test_home():
         def a(self):
             return self._tic + 0.1 < time.time() < self._tic + 0.2
         
-    fn, _ = menu.home({'lcd': LCD(), 'buttons': B(), 'wifi': WiFi()})
-    assert fn == menu.menu
+    fn, _ = ballometer.menu.home({'lcd': LCD(), 'buttons': B(), 'wifi': WiFi()})
+    assert fn == ballometer.menu.menu
     
 def test_menu():
     class B1(Buttons):
@@ -89,8 +89,8 @@ def test_menu():
         def a(self):
             return self._tic + 0.1 < time.time() < self._tic + 0.2
         
-    fn, _ = menu.menu({'lcd': LCD(), 'buttons': B1()})
-    assert fn == menu.rec
+    fn, _ = ballometer.menu.menu({'lcd': LCD(), 'buttons': B1()})
+    assert fn == ballometer.menu.rec
     
     class B2(Buttons):
         @property
@@ -101,16 +101,16 @@ def test_menu():
         def a(self):
             return self._tic + 0.5 < time.time() < self._tic + 0.6
         
-    fn, _ = menu.menu({'lcd': LCD(), 'buttons': B2()})
-    assert fn == menu.wifi
+    fn, _ = ballometer.menu.menu({'lcd': LCD(), 'buttons': B2()})
+    assert fn == ballometer.menu.wifi
     
     class B3(Buttons):
         @property
         def left(self):
             return self._tic + 0.1 < time.time() < self._tic + 0.2
         
-    fn, _ = menu.menu({'lcd': LCD(), 'buttons': B3()})
-    assert fn == menu.home
+    fn, _ = ballometer.menu.menu({'lcd': LCD(), 'buttons': B3()})
+    assert fn == ballometer.menu.home
     
 def test_rec():
     class B1(Buttons):
@@ -118,16 +118,16 @@ def test_rec():
         def right(self):
             return self._tic + 0.1 < time.time() < self._tic + 0.2
         
-    fn, _ = menu.rec({'lcd': LCD(), 'buttons': B1()})
-    assert fn == menu.home
+    fn, _ = ballometer.menu.rec({'lcd': LCD(), 'buttons': B1()})
+    assert fn == ballometer.menu.home
     
     class B2(Buttons):
         @property
         def b(self):
             return self._tic + 0.1 < time.time() < self._tic + 0.2
         
-    fn, _ = menu.rec({'lcd': LCD(), 'buttons': B2()})
-    assert fn == menu.menu
+    fn, _ = ballometer.menu.rec({'lcd': LCD(), 'buttons': B2()})
+    assert fn == ballometer.menu.menu
     
 def test_wifi():
     class B1(Buttons):
@@ -135,8 +135,8 @@ def test_wifi():
         def right(self):
             return self._tic + 0.1 < time.time() < self._tic + 0.2
         
-    fn, _ = menu.wifi({'lcd': LCD(), 'buttons': B1()})
-    assert fn == menu.wifi_add
+    fn, _ = ballometer.menu.wifi({'lcd': LCD(), 'buttons': B1()})
+    assert fn == ballometer.menu.wifi_add
     
     class B2(Buttons):
         @property
@@ -146,16 +146,16 @@ def test_wifi():
         def right(self):
             return self._tic + 0.3 < time.time() < self._tic + 0.4
         
-    fn, _ = menu.wifi({'lcd': LCD(), 'buttons': B2()})
-    assert fn == menu.wifi_delete
+    fn, _ = ballometer.menu.wifi({'lcd': LCD(), 'buttons': B2()})
+    assert fn == ballometer.menu.wifi_delete
     
     class B3(Buttons):
         @property
         def b(self):
             return self._tic + 0.1 < time.time() < self._tic + 0.2
         
-    fn, _ = menu.wifi({'lcd': LCD(), 'buttons': B3()})
-    assert fn == menu.menu
+    fn, _ = ballometer.menu.wifi({'lcd': LCD(), 'buttons': B3()})
+    assert fn == ballometer.menu.menu
     
     class B4(Buttons):
         @property
@@ -166,8 +166,8 @@ def test_wifi():
         def right(self):
             return self._tic + 0.5 < time.time() < self._tic + 0.6
         
-    fn, _ = menu.wifi({'lcd': LCD(), 'buttons': B4()})
-    assert fn == menu.wifi_reset
+    fn, _ = ballometer.menu.wifi({'lcd': LCD(), 'buttons': B4()})
+    assert fn == ballometer.menu.wifi_reset
     
 def test_wifi_add():
     class B1(Buttons):
@@ -175,8 +175,8 @@ def test_wifi_add():
         def right(self):
             return self._tic + 0.1 < time.time() < self._tic + 0.2
         
-    fn, _ = menu.wifi_add({'lcd': LCD(), 'buttons': B1(), 'wifi': WiFi()})
-    assert fn == menu.wifi
+    fn, _ = ballometer.menu.wifi_add({'lcd': LCD(), 'buttons': B1(), 'wifi': WiFi()})
+    assert fn == ballometer.menu.wifi
     
     class W1(WiFi):
         def scan(self):
@@ -190,8 +190,8 @@ def test_wifi_add():
         def right(self):
             return self._tic + 0.3 < time.time() < self._tic + 0.4
         
-    fn, params_out = menu.wifi_add({'lcd': LCD(), 'buttons': B2(), 'wifi': W1()})
-    assert fn == menu.wifi_password
+    fn, params_out = ballometer.menu.wifi_add({'lcd': LCD(), 'buttons': B2(), 'wifi': W1()})
+    assert fn == ballometer.menu.wifi_password
     assert params_out['ssid'] == 'ssid2'
     
     class B3(Buttons):
@@ -199,8 +199,8 @@ def test_wifi_add():
         def left(self):
             return self._tic + 0.1 < time.time() < self._tic + 0.2
         
-    fn, _ = menu.wifi_add({'lcd': LCD(), 'buttons': B3(), 'wifi': W1()})
-    assert fn == menu.wifi
+    fn, _ = ballometer.menu.wifi_add({'lcd': LCD(), 'buttons': B3(), 'wifi': W1()})
+    assert fn == ballometer.menu.wifi
     
 def test_wifi_password():
     class B1(Buttons):
@@ -208,8 +208,8 @@ def test_wifi_password():
         def a(self):
             return self._tic + 0.1 < time.time() < self._tic + 0.2
         
-    fn, _ = menu.wifi_password({'lcd': LCD(), 'buttons': B1(), 'wifi': WiFi(), 'ssid': 'ssid1'})
-    assert fn == menu.home
+    fn, _ = ballometer.menu.wifi_password({'lcd': LCD(), 'buttons': B1(), 'wifi': WiFi(), 'ssid': 'ssid1'})
+    assert fn == ballometer.menu.home
     
     class W1(WiFi):
         def add(self, ssid, password):
@@ -225,8 +225,8 @@ def test_wifi_password():
         def a(self):
             return self._tic + 0.3 < time.time() < self._tic + 0.4
         
-    fn, params_out = menu.wifi_password({'lcd': LCD(), 'buttons': B2(), 'wifi': W1(), 'ssid': 'ssid1'})
-    assert fn == menu.home
+    fn, params_out = ballometer.menu.wifi_password({'lcd': LCD(), 'buttons': B2(), 'wifi': W1(), 'ssid': 'ssid1'})
+    assert fn == ballometer.menu.home
     assert params_out['wifi'].password == '9'
     
 def test_wifi_delete():
@@ -246,8 +246,8 @@ def test_wifi_delete():
         def a(self):
             return self._tic + 0.3 < time.time() < self._tic + 0.4
         
-    fn, params_out = menu.wifi_delete({'lcd': LCD(), 'buttons': B1(), 'wifi': W1()})
-    assert fn == menu.home
+    fn, params_out = ballometer.menu.wifi_delete({'lcd': LCD(), 'buttons': B1(), 'wifi': W1()})
+    assert fn == ballometer.menu.home
     assert params_out['wifi'].ssid == 'ssid2'
     
     class B2(Buttons):
@@ -255,8 +255,8 @@ def test_wifi_delete():
         def b(self):
             return self._tic + 0.3 < time.time() < self._tic + 0.4
         
-    fn, _ = menu.wifi_delete({'lcd': LCD(), 'buttons': B2(), 'wifi': W1()})
-    assert fn == menu.wifi
+    fn, _ = ballometer.menu.wifi_delete({'lcd': LCD(), 'buttons': B2(), 'wifi': W1()})
+    assert fn == ballometer.menu.wifi
     
 def test_wifi_reset():
             
@@ -265,16 +265,16 @@ def test_wifi_reset():
         def b(self):
             return self._tic + 0.1 < time.time() < self._tic + 0.2
         
-    fn, _ = menu.wifi_reset({'lcd': LCD(), 'buttons': B1(), 'wifi': WiFi()})
-    assert fn == menu.wifi
+    fn, _ = ballometer.menu.wifi_reset({'lcd': LCD(), 'buttons': B1(), 'wifi': WiFi()})
+    assert fn == ballometer.menu.wifi
     
     class B2(Buttons):
         @property
         def a(self):
             return self._tic + 0.1 < time.time() < self._tic + 0.2
         
-    fn, _ = menu.wifi_reset({'lcd': LCD(), 'buttons': B2(), 'wifi': WiFi()})
-    assert fn == menu.wifi
+    fn, _ = ballometer.menu.wifi_reset({'lcd': LCD(), 'buttons': B2(), 'wifi': WiFi()})
+    assert fn == ballometer.menu.wifi
     
     class B3(Buttons):
         @property
@@ -285,13 +285,13 @@ def test_wifi_reset():
         def a(self):
             return self._tic + 0.3 < time.time() < self._tic + 0.4
         
-    fn, _ = menu.wifi_reset({'lcd': LCD(), 'buttons': B3(), 'wifi': WiFi()})
-    assert fn == menu.home
+    fn, _ = ballometer.menu.wifi_reset({'lcd': LCD(), 'buttons': B3(), 'wifi': WiFi()})
+    assert fn == ballometer.menu.home
     
 
 def test_update():
-    fn, _ = menu.update({'lcd': LCD(), 'buttons': Buttons(), 'update': Update()})
-    assert fn == menu.menu
+    fn, _ = ballometer.menu.update({'lcd': LCD(), 'buttons': Buttons(), 'update': Update()})
+    assert fn == ballometer.menu.menu
     
     class U1(Update):
         def get_releases(self):
@@ -302,23 +302,23 @@ def test_update():
         def b(self):
             return self._tic + 2.3 < time.time() < self._tic + 2.4
 
-    fn, _ = menu.update({'lcd': LCD(), 'buttons': B1(), 'update': U1()})
-    assert fn == menu.menu
+    fn, _ = ballometer.menu.update({'lcd': LCD(), 'buttons': B1(), 'update': U1()})
+    assert fn == ballometer.menu.menu
     
     class B2(Buttons):
         @property
         def a(self):
             return self._tic + 2.3 < time.time() < self._tic + 2.4
 
-    fn, _ = menu.update({'lcd': LCD(), 'buttons': B2(), 'update': U1()})
-    assert fn == menu.home
+    fn, _ = ballometer.menu.update({'lcd': LCD(), 'buttons': B2(), 'update': U1()})
+    assert fn == ballometer.menu.home
     
     class U2(Update):
         def get_releases(self):
             raise self.UpdateError('error')
 
-    fn, _ = menu.update({'lcd': LCD(), 'buttons': B2(), 'update': U2()})
-    assert fn == menu.home
+    fn, _ = ballometer.menu.update({'lcd': LCD(), 'buttons': B2(), 'update': U2()})
+    assert fn == ballometer.menu.home
     
     class U3(Update):
         def get_releases(self):
@@ -326,5 +326,5 @@ def test_update():
         def install(self, release='v1.0.0', update_callback=lambda text: ()):
             raise self.UpdateError('error')
         
-    fn, _ = menu.update({'lcd': LCD(), 'buttons': B2(), 'update': U3()})
-    assert fn == menu.home
+    fn, _ = ballometer.menu.update({'lcd': LCD(), 'buttons': B2(), 'update': U3()})
+    assert fn == ballometer.menu.home
