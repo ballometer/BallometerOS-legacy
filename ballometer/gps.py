@@ -1,7 +1,11 @@
-import adafruit_gps
-import busio
-import board
-import serial 
+try:
+    import adafruit_gps
+    import busio
+    import board
+    import serial 
+except ImportError:
+    pass
+
 import time
 
 uart = serial.Serial("/dev/ttyAMA0", baudrate=9600, timeout=10)

@@ -1,5 +1,8 @@
-import busio
-import adafruit_bmp280
+try:
+    import busio
+    import adafruit_bmp280
+except ImportError:
+    pass
 
 class BMP:
     def __init__(self):

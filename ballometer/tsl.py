@@ -1,5 +1,8 @@
-import busio
-import adafruit_tsl2591
+try:
+    import busio
+    import adafruit_tsl2591
+except ImportError:
+    pass
 
 class TSL:
     def __init__(self):

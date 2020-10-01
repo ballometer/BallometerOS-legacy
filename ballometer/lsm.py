@@ -1,6 +1,9 @@
-import busio
-import adafruit_lsm303_accel
-import adafruit_lsm303dlh_mag
+try:
+    import busio
+    import adafruit_lsm303_accel
+    import adafruit_lsm303dlh_mag
+except ImportError:
+    pass
 
 class LSM:
     def __init__(self):

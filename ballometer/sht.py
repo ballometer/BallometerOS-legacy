@@ -1,5 +1,8 @@
-import busio
-import adafruit_sht31d
+try:
+    import busio
+    import adafruit_sht31d
+except ImportError:
+    pass
 
 class SHT:
     def __init__(self):

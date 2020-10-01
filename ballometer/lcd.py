@@ -1,4 +1,7 @@
-from RPLCD.i2c import CharLCD
+try:
+    from RPLCD.i2c import CharLCD
+except ImportError:
+    pass
 
 class LCD(CharLCD):
     def __init__(self):

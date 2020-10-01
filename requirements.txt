@@ -1,9 +1,1 @@
-RPLCD
-RPi.GPIO
-pyserial
-adafruit-circuitpython-bmp280
-adafruit-circuitpython-gps
-adafruit-circuitpython-lsm303-accel
-adafruit-circuitpython-lsm303dlh-mag 
-adafruit-circuitpython-tsl2591
-adafruit-circuitpython-sht31d
+requests
