@@ -6,7 +6,12 @@ sht = ballometer.SHT()
 tsl = ballometer.TSL()
 lsm = ballometer.LSM()
 
-store = ballometer.Store()
+while True:
+    try:
+        store = ballometer.Store()
+        break
+    except ballometer.StorageError:
+        time.sleep(5)
 
 while True:
     store.save(key='bmp_pressure', value=bmp.pressure)
