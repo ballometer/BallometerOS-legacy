@@ -1,10 +1,19 @@
-import alsaaudio
-import audioop
+try:
+    import alsaaudio
+    import audioop
+except ImportError:
+    pass
 
-inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NONBLOCK)
 
+class Mic:
+    def __init__(self):
+        self._inp = alsaaudio.PCM(
+            alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NONBLOCK)
 
-while True:
-    l, data = inp.read()
-    if l:
-        print(audioop.rms(data, 2))
+    @property
+    def sound_level(self):
+        success = False
+        while not success:
+            l, data = self._inp.read()
+            success = not l
+        return float(audioop.rms(data, 2))
