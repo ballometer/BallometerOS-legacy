@@ -1,15 +1,11 @@
-import tsl
+import ballometer
+
 
 def test_visible():
-    t = tsl.TSL()
-    assert 0.0 <= t.visible
-    
-def test_infrared():
-    t = tsl.TSL()
-    assert 0.0 <= t.infrared
-    
+    tsl = ballometer.TSL()
+    assert 0.0 <= tsl.visible
 
-if __name__ == '__main__':
-    test_visible()
-    test_infrared()
-    
+
+def test_infrared():
+    tsl = ballometer.TSL()
+    assert 0.0 <= tsl.infrared
