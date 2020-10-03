@@ -9,6 +9,7 @@ def set_system_time(unixtime=1601116701):
 
 
 gps = ballometer.GPS()
+store = ballometer.Store()
 
 time_was_set = False
 while not time_was_set:
@@ -18,3 +19,10 @@ while not time_was_set:
         if t > 0:
             set_system_time(t)
             time_was_set = True
+
+while True:
+    gps.update()
+    if gps.has_fix:
+        store.save(key='gps_latitude', value=gps.latitude)
+        store.save(key='gps_longitude', value=gps.longitude)
+        time.sleep(1)
