@@ -1,6 +1,6 @@
 import time
-import wifi as w
-import update as u
+from . import wifi as w
+from . import update as u
 
 
 def _choose(lcd, buttons, items=['item1', 'item2']):
