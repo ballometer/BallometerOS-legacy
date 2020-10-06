@@ -19,12 +19,7 @@ while not time_was_set:
             set_system_time(t)
             time_was_set = True
 
-while True:
-    try:
-        store = ballometer.Store()
-        break
-    except ballometer.StorageError:
-        time.sleep(5)
+store = ballometer.Store()
         
 while True:
     gps.update()

@@ -2,12 +2,18 @@ import influxdb
 import redis
 import time
 import requests
+import json
 
-class StorageError(Exception):
-    pass
 
 class Store:
     def __init__(self):
+        '''
+        This constructor is blocking until both influxdb
+        and redis respond to ping. This is useful during system
+        startup. When the constructor returns, the storage system 
+        is ready to use.
+        '''
+
         self._db_name = 'ballometer'
         self._influx = influxdb.InfluxDBClient()
         if self._influx.switch_database(self._db_name) is None:
@@ -15,13 +21,17 @@ class Store:
             
         self._redis = redis.Redis()
         
-        try:
-            self._influx.ping()
-            self._redis.ping()
-        except requests.exceptions.ConnectionError:
-            raise StorageError('InfluxDB is not ready')
-        except redis.exceptions.ConnectionError:
-            raise StorageError('Redis is not ready')
+        while True:
+            try:
+                self._influx.ping()
+                self._redis.ping()
+                break
+            except requests.exceptions.ConnectionError:
+                print('InfluxDB is not ready')
+                time.sleep(5)
+            except redis.exceptions.ConnectionError:
+                print('Redis is not ready')
+                time.sleep(5)
         
         if self._redis.get('flight_id') is None:
             # Volatile redis key has not been set yet.
@@ -46,6 +56,9 @@ class Store:
         '''
         if unixtime is None:
             unixtime = time.time()
+            
+        self._redis.publish(f'save:{key}', 
+            json.dumps({'value': value, 'unixtime': unixtime}))
 
         if not self.clock_was_synchronized():
             # The system time is not synchronized yet
