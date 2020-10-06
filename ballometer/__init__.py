@@ -6,7 +6,7 @@ from .mic import Mic
 from .sht import SHT
 from .tsl import TSL
 from .gps import GPS
-from .storage import Store
+from .store import Store
 from . import menu
 from . import wifi
 from . import update
