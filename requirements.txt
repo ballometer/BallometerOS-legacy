@@ -1,3 +1,5 @@
 requests
 influxdb
 redis
+fastapi
+uvicorn
