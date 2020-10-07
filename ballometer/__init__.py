@@ -7,6 +7,7 @@ from .sht import SHT
 from .tsl import TSL
 from .gps import GPS
 from .store import Store
+from .vario import Vario
 from . import menu
 from . import wifi
 from . import update
