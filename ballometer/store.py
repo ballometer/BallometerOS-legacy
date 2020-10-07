@@ -108,6 +108,26 @@ class Store:
             for key in self._redis.smembers('save')
         }
 
+    def get_history(self):
+        '''
+        Returns for the current flight all the measurements that
+        were stored in the format
+        {
+            'bmp_pressure': [
+                {'value': 94349.0, 'unixtime': 123456.0},
+                {'value': 94834.3, 'unixtime': 123457.0},
+                ...
+            ],
+            'sht_temperature': [
+                {'value': 301.0, 'unixtime': 123456.0},
+                {'value': 300.3, 'unixtime': 123457.0},
+                ...
+            ],
+            ...
+        }
+        '''
+        return {}
+
     def _get_volatile_float(self, key='key-name'):
         value = self._redis.get(key)
         if value is None:

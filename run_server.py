@@ -1,7 +1,19 @@
 import uvicorn
-from fastapi import FastAPI
+import fastapi
+import ballometer
 
-app = FastAPI()
+app = fastapi.FastAPI()
+store = ballometer.Store()
+
+
+@app.get('/get_saved')
+def get_saved():
+    return store.get_saved()
+
+
+@app.get('/get_history')
+def get_history():
+    return store.get_history()
 
 
 @app.get('/')
