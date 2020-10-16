@@ -9,3 +9,10 @@ def test_temperature():
 def test_pressure():
     b = ballometer.BMP()
     assert 300.0 * 1e2 < b.pressure < 1100.0 * 1e2
+
+
+def test_all():
+    print('test_temperature()')
+    test_temperature()
+    print('test_pressure()')
+    test_pressure()

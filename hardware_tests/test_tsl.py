@@ -9,3 +9,10 @@ def test_visible():
 def test_infrared():
     tsl = ballometer.TSL()
     assert 0.0 <= tsl.infrared
+
+
+def test_all():
+    print('test_visible()')
+    test_visible()
+    print('test_infrared()')
+    test_infrared()

@@ -9,3 +9,10 @@ def test_temperature():
 def test_humidity():
     sht = ballometer.SHT()
     assert 0 <= sht.humidity <= 100
+
+
+def test_all():
+    print('test_temperature()')
+    test_temperature()
+    print('test_humidity()')
+    test_humidity()

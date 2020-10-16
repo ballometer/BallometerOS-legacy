@@ -25,3 +25,16 @@ def test_clear():
 def test_write_string():
     lcd = ballometer.LCD()
     lcd.write_string('HALLO WELT')
+
+
+def test_all():
+    print('test_cursor_pos()')
+    test_cursor_pos()
+    print('test_columns()')
+    test_columns()
+    print('test_cursor_mode()')
+    test_cursor_mode()
+    print('test_clear()')
+    test_clear()
+    print('test_write_string()')
+    test_write_string()

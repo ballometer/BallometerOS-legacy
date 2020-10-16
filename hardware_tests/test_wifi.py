@@ -44,3 +44,20 @@ def test_remove():
 def test_reset():
 
     w.reset()
+
+
+def test_all():
+    print('test_decode_name()')
+    test_decode_name()
+    print('test_get_ip()')
+    test_get_ip()
+    print('test_scan()')
+    test_scan()
+    print('test_add()')
+    test_add()
+    print('test_known()')
+    test_known()
+    print('test_remove()')
+    test_remove()
+    print('test_reset()')
+    test_reset()

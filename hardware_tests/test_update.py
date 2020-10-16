@@ -97,3 +97,32 @@ def test_install():
 
 def test_create_checksums_json():
     assert 'rootfs' in u.create_checksums_json()
+
+
+def test_all():
+    print('test_run()')
+    test_run()
+    print('test_get_current_release()')
+    test_get_current_release()
+    print('test_get_releases()')
+    test_get_releases()
+    print('test_get_passive_partition()')
+    test_get_passive_partition()
+    print('test_get_total_size()')
+    test_get_total_size()
+    print('test_download_checksums()')
+    test_download_checksums()
+    print('test_download_rootfs()')
+    test_download_rootfs()
+    print('test_download_boot()')
+    test_download_boot()
+    print('test_get_checksum_rootfs()')
+    test_get_checksum_rootfs()
+    print('test_get_checksum_boot()')
+    test_get_checksum_boot()
+    print('test_flash_boot_select()')
+    test_flash_boot_select()
+    print('test_install()')
+    test_install()
+    print('test_create_checksums_json()')
+    test_create_checksums_json()
