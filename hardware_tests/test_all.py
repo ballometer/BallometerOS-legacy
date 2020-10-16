@@ -1,10 +1,10 @@
-from . import test_bmp
-from . import test_lcd
-from . import test_lsm
-from . import test_sht
-from . import test_tsl
-from . import test_update
-from . import test_wifi
+import test_bmp
+import test_lcd
+import test_lsm
+import test_sht
+import test_tsl
+import test_update
+import test_wifi
 
 
 print('###### test_bmp')
