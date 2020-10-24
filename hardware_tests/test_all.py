@@ -6,6 +6,7 @@ import test_tsl
 import test_update
 import test_wifi
 import test_mic
+import test_gps
 
 print('###### test_bmp')
 test_bmp.test_all()
@@ -30,3 +31,6 @@ test_wifi.test_all()
 
 print('###### test_mic')
 test_mic.test_all()
+
+print('###### test_gps')
+test_gps.test_all()
