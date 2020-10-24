@@ -5,7 +5,7 @@ import test_sht
 import test_tsl
 import test_update
 import test_wifi
-
+import test_mic
 
 print('###### test_bmp')
 test_bmp.test_all()
@@ -27,3 +27,6 @@ test_update.test_all()
 
 print('###### test_wifi')
 test_wifi.test_all()
+
+print('###### test_mic')
+test_mic.test_all()
