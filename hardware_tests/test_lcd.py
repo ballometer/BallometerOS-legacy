@@ -38,3 +38,7 @@ def test_all():
     test_clear()
     print('test_write_string()')
     test_write_string()
+
+
+if __name__ == '__main__':
+    test_all()

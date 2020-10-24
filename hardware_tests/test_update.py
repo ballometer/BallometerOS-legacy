@@ -126,3 +126,7 @@ def test_all():
     test_install()
     print('test_create_checksums_json()')
     test_create_checksums_json()
+
+
+if __name__ == '__main__':
+    test_all()

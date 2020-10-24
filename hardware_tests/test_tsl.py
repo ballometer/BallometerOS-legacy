@@ -16,3 +16,7 @@ def test_all():
     test_visible()
     print('test_infrared()')
     test_infrared()
+
+
+if __name__ == '__main__':
+    test_all()

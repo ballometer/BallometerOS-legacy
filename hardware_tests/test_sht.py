@@ -16,3 +16,7 @@ def test_all():
     test_temperature()
     print('test_humidity()')
     test_humidity()
+
+
+if __name__ == '__main__':
+    test_all()

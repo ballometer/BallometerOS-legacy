@@ -61,3 +61,7 @@ def test_all():
     test_remove()
     print('test_reset()')
     test_reset()
+
+
+if __name__ == '__main__':
+    test_all()

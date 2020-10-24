@@ -44,3 +44,7 @@ def test_all():
     test_mag_y()
     print('test_mag_z()')
     test_mag_z()
+
+
+if __name__ == '__main__':
+    test_all()
