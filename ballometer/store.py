@@ -3,6 +3,7 @@ import redis
 import time
 import requests
 import json
+import datetime
 
 
 class Store:
@@ -80,7 +81,7 @@ class Store:
                 'fields': {
                     'value': float(value)
                 },
-                'time': unixtime,
+                'time': datetime.datetime.fromtimestamp(unixtime).isoformat(),
                 'tags': {
                     'flight_id': str(self.flight_id)
                 }
