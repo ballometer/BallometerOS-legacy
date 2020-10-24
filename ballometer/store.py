@@ -19,7 +19,7 @@ class Store:
         if self._influx.switch_database(self._db_name) is None:
             self._influx.create_database(self._db_name)
 
-        self._redis = redis.Redis()
+        self._redis = redis.Redis(decode_responses=True)
 
         while True:
             try:
@@ -104,7 +104,7 @@ class Store:
         }
         '''
         return {
-            key.decode(): json.loads(self._redis.get(f'save:{key}'))
+            key: json.loads(self._redis.get(f'save:{key}'))
             for key in self._redis.smembers('save')
         }
 
