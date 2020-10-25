@@ -120,28 +120,34 @@ def rec(params):
     if item == 'START':
         lcd.clear()
         lcd.cursor_pos = (0, 0)
-        lcd.write_string('START\r\nREC...')
-        time.sleep(1.0)
+        lcd.write_string('START REC...')
         store = ballometer.Store()
         store.flight_id += 1
+        lcd.cursor_pos = (1, 0)
+        lcd.write_string('FLIGHT ID %i' % store.flight_id)
+        time.sleep(2.0)
         store.recording = True
         return rec_qnh, params
 
     elif item == 'CONTINUE':
         lcd.clear()
         lcd.cursor_pos = (0, 0)
-        lcd.write_string('CONTINUE\r\nREC...')
-        time.sleep(1.0)
+        lcd.write_string('CONTINUE REC...')
         store = ballometer.Store()
+        lcd.cursor_pos = (1, 0)
+        lcd.write_string('FLIGHT ID %i' % store.flight_id)
+        time.sleep(2.0)
         store.recording = True
         return rec_qnh, params
 
     elif item == 'STOP':
         lcd.clear()
         lcd.cursor_pos = (0, 0)
-        lcd.write_string('STOP\r\nREC...')
-        time.sleep(1.0)
+        lcd.write_string('STOP REC...')
         store = ballometer.Store()
+        lcd.cursor_pos = (1, 0)
+        lcd.write_string('FLIGHT ID %i' % store.flight_id)
+        time.sleep(2.0)
         store.recording = False
         return home, params
 
@@ -151,10 +157,10 @@ def rec_qnh(params):
     buttons = params['buttons']
     store = ballometer.Store()
     last_qnh = '%04i' % int(store.qnh)
-
+    
     lcd.clear()
     lcd.cursor_pos = (0, 0)
-    text = 'QNH:'
+    text = 'QNH:\r\n' + last_qnh
     lcd.write_string(text)
 
     cursor = 0
@@ -215,7 +221,7 @@ def rec_qnh(params):
                     break
 
             if buttons.right:
-                if cursor < lcd.columns - 1:
+                if cursor < text_max_length - 1:
                     cursor += 1
                     lcd.cursor_pos = (1, cursor)
                     time.sleep(0.3)
