@@ -1,6 +1,7 @@
 import time
 from . import wifi as w
 from . import update as u
+import ballometer
 
 
 def _choose(lcd, buttons, items=['item1', 'item2']):
@@ -117,23 +118,143 @@ def rec(params):
         return menu, params
 
     if item == 'START':
-        # start recording
         lcd.clear()
         lcd.cursor_pos = (0, 0)
-        lcd.write_string('START REC...')
-    elif item == 'CONTINUE':
-        # continue recording
-        lcd.clear()
-        lcd.cursor_pos = (0, 0)
-        lcd.write_string('CONNTINUE\r\nREC...')
-    elif item == 'STOP':
-        # stop recording
-        lcd.clear()
-        lcd.cursor_pos = (0, 0)
-        lcd.write_string('STOP REC...')
-    time.sleep(2)
+        lcd.write_string('START\r\nREC...')
+        time.sleep(1.0)
+        store = ballometer.Store()
+        store.flight_id += 1
+        store.recording = True
+        return rec_qnh, params
 
-    return home, params
+    elif item == 'CONTINUE':
+        lcd.clear()
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string('CONTINUE\r\nREC...')
+        time.sleep(1.0)
+        store = ballometer.Store()
+        store.recording = True
+        return rec_qnh, params
+
+    elif item == 'STOP':
+        lcd.clear()
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string('STOP\r\nREC...')
+        time.sleep(1.0)
+        store = ballometer.Store()
+        store.recording = False
+        return home, params
+
+
+def rec_qnh(params):
+    lcd = params['lcd']
+    buttons = params['buttons']
+    store = ballometer.Store()
+    last_qnh = '%04i' % int(store.qnh)
+
+    lcd.clear()
+    lcd.cursor_pos = (0, 0)
+    text = 'QNH:'
+    lcd.write_string(text)
+
+    cursor = 0
+    shift = 0
+
+    lcd.cursor_mode = 'line'
+    lcd.cursor_pos = (1, cursor)
+    buttons.await_unclick()
+
+    letters = [
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    ]
+
+    text_max_length = 4
+    text_codes = [letters.index(letter) for letter in last_qnh]
+
+    while True:
+        while True:
+            begin_press = True
+            while buttons.up:
+                text_codes[cursor + shift] = text_codes[cursor + shift] + 1
+                text_codes[cursor + shift] %= len(letters)
+                lcd.write_string(letters[text_codes[cursor + shift]])
+                lcd.cursor_pos = (1, cursor)
+
+                if begin_press:
+                    time.sleep(0.2)
+                    begin_press = False
+                else:
+                    time.sleep(0.05)
+
+            while buttons.down:
+                text_codes[cursor + shift] = text_codes[cursor + shift] - 1
+                text_codes[cursor + shift] %= len(letters)
+                lcd.write_string(letters[text_codes[cursor + shift]])
+                lcd.cursor_pos = (1, cursor)
+
+                if begin_press:
+                    time.sleep(0.2)
+                    begin_press = False
+                else:
+                    time.sleep(0.05)
+
+            if buttons.left:
+                if cursor > 0:
+                    cursor -= 1
+                    lcd.cursor_pos = (1, cursor)
+                    time.sleep(0.3)
+                    break
+                elif cursor + shift > 0:
+                    shift -= 1
+                    lcd.cursor_pos = (1, 0)
+                    tmp = text_codes[shift:(shift + lcd.columns)]
+                    text = ''.join([letters[code] for code in tmp])
+                    lcd.write_string(text)
+                    lcd.cursor_pos = (1, cursor)
+                    time.sleep(0.3)
+                    break
+
+            if buttons.right:
+                if cursor < lcd.columns - 1:
+                    cursor += 1
+                    lcd.cursor_pos = (1, cursor)
+                    time.sleep(0.3)
+                    break
+                elif cursor + shift < text_max_length - 1:
+                    shift += 1
+                    lcd.cursor_pos = (1, 0)
+                    tmp = text_codes[shift:(shift + lcd.columns)]
+                    text = ''.join([letters[code] for code in tmp])
+                    lcd.write_string(text)
+                    lcd.cursor_pos = (1, cursor)
+                    time.sleep(0.3)
+                    break
+
+            if buttons.a or buttons.b:
+                break
+
+        if buttons.a or buttons.b:
+            break
+
+    lcd.cursor_mode = 'hide'
+    lcd.clear()
+    lcd.cursor_pos = (0, 0)
+
+    if buttons.no:
+        return rec, params
+
+    if buttons.yes:
+        qnh = int(''.join([letters[code] for code in text_codes]).strip())
+
+        if not (800 < qnh < 1200):
+            lcd.write_string('OUT OF RANGE')
+            time.sleep(2.0)
+            return rec_qnh, params
+
+        lcd.write_string('SETTING QNH...')
+        store.qnh = qnh
+        time.sleep(1.0)
+        return home, params
 
 
 def wifi(params):
