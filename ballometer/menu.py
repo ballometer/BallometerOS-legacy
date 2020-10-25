@@ -55,14 +55,14 @@ def home(params):
     last_ip = w.get_ip()
 
     lcd.write_string(last_ip + '\r\n>MENU')
-
-    check_ip_interval = 10  # s
-    last_ip_check = time.time()
+    store = ballometer.Store()
+    check_interval = 1  # s
+    last_check = time.time()
 
     buttons.await_unclick()
 
     while not buttons.yes:
-        if last_ip_check + check_ip_interval < time.time():
+        if last_check + check_interval < time.time():
             ip = w.get_ip()
 
             if ip != last_ip:
@@ -72,7 +72,14 @@ def home(params):
                 text += ' ' * (lcd.columns - len(text))
                 lcd.write_string(text)
 
-            last_ip_check = time.time()
+            if store.recording:
+                lcd.cursor_pos = (1, 12)
+                lcd.write_string('REC*')
+            else:
+                lcd.cursor_pos = (1, 12)
+                lcd.write_string('    ')
+
+            last_check = time.time()
 
     return menu, params
 
