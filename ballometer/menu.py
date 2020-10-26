@@ -164,7 +164,7 @@ def rec_qnh(params):
     buttons = params['buttons']
     store = ballometer.Store()
     last_qnh = '%04i' % int(store.qnh)
-    
+
     lcd.clear()
     lcd.cursor_pos = (0, 0)
     text = 'QNH:\r\n' + last_qnh
@@ -256,18 +256,29 @@ def rec_qnh(params):
     if buttons.no:
         return rec, params
 
-    if buttons.yes:
-        qnh = int(''.join([letters[code] for code in text_codes]).strip())
+    qnh = int(''.join([letters[code] for code in text_codes]).strip())
 
-        if not (800 < qnh < 1200):
-            lcd.write_string('OUT OF RANGE')
-            time.sleep(2.0)
-            return rec_qnh, params
+    if not (800 < qnh < 1200):
+        lcd.write_string('OUT OF RANGE')
+        time.sleep(2.0)
+        return rec_qnh, params
 
-        lcd.write_string('SETTING QNH...')
-        store.qnh = qnh
+    lcd.clear()
+    lcd.write_string('WAITING FOR GPS\r\nOR NETWORK TIME')
+    while not store.clock_was_synchronized():
         time.sleep(1.0)
-        return home, params
+        if buttons.no:
+            lcd.clear()
+            lcd.write_string('STOP REC...')
+            time.sleep(2.0)
+            store.recording = False
+            return home, params
+
+    lcd.write_string('SETTING QNH...')
+    store.qnh = qnh
+    time.sleep(2.0)
+
+    return home, params
 
 
 def wifi(params):
