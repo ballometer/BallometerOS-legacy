@@ -1,8 +1,6 @@
-try:
-    import alsaaudio
-    import audioop
-except ImportError:
-    pass
+import alsaaudio
+import audioop
+import time
 
 
 class Mic:
@@ -16,3 +14,11 @@ class Mic:
         while not success:
             success, data = self._inp.read()
         return float(audioop.rms(data, 2))
+    
+    @property
+    def sound_level_1s(self):
+        result = 0.0
+        t_start = time.time()
+        while time.time() < t_start + 1.0:
+            result += self.sound_level
+        return result
