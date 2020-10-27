@@ -14,6 +14,5 @@ class Mic:
     def sound_level(self):
         success = False
         while not success:
-            l, data = self._inp.read()
-            success = not l
+            success, data = self._inp.read()
         return float(audioop.rms(data, 2))
