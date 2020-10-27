@@ -1,8 +1,16 @@
 import uvicorn
 import fastapi
 import ballometer
+from fastapi.middleware.cors import CORSMiddleware
 
 app = fastapi.FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=['*'],
+    allow_methods=['*'],
+    allow_headers=['*']
+)
 store = ballometer.Store()
 
 
