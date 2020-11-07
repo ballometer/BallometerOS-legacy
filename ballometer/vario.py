@@ -60,6 +60,20 @@ def calculate_altitude(pressure_pa, qnh_pa):
 
 
 class Vario:
+    '''
+    Usage example:
+    
+    vario = Vario()
+    vario.qnh_pa = 102300  # set qnh in Pa
+    
+    # setting the current pressure
+    # triggers a calculation of altitude and speed
+    vario.pressure = 98400  
+    
+    # use the calculated values
+    a = vario.altitude
+    s = vario.speed
+    '''
     def __init__(self):
         self.qnh_pa = 101325.0  # Pa
         self.altitude = 430.0  # m
@@ -90,6 +104,6 @@ class Vario:
         self._x, self._P = update(self._x, self._P, self._z, self._R, self._H)
 
         self.altitude = self._x[0][0]  # m
-        self.speed = self._x[0][1] / (this_update - self._last_update)  # m/s
+        self.speed = self._x[1][0] / (this_update - self._last_update)  # m/s
 
         self._last_update = this_update

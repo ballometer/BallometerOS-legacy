@@ -1,6 +1,7 @@
 import redis
 import ballometer
 import json
+import time
 
 
 store = ballometer.Store()
@@ -10,10 +11,30 @@ vario = ballometer.Vario()
 p = r.pubsub(ignore_subscribe_messages=True)
 p.subscribe('save:bmp_pressure')
 
+ignore_speed_until = time.time() + 10  # s
+first_message = True
+
+qnh_old = store.qnh
+qnh_now = qnh_old
+
 for message in p.listen():
+    if first_message:
+        ignore_speed_until = time.time() + 10  # s
+        first_message = False
+    
+    qnh_now = store.qnh
+    if qnh_now != qnh_old:
+        ignore_speed_until = time.time() + 10  # s
+        qnh_old = qnh_now
+
+    vario.qnh_pa = qnh_now * 1e2  # Pa
     data = json.loads(message['data'])
-    vario.pressure = data['value']  # Pa
     unixtime = data['unixtime']  # seconds
-    vario.qnh_pa = store.qnh * 1e2  # Pa
+    vario.pressure = data['value']  # Pa
     altitude = vario.altitude  # m
-    store.save(key='bmp_altitude', value=altitude, unixtime=unixtime)
+    speed = vario.speed  # m/s
+    if time.time() < ignore_speed_until:
+        speed = 0.0
+
+    store.save(key='vario_altitude', value=altitude, unixtime=unixtime)
+    store.save(key='vario_speed', value=speed, unixtime=unixtime)
