@@ -41,6 +41,15 @@ def get_saved():
 
 @app.get('/get_history')
 def get_history():
+    '''
+        Returns for the current flight all the measurements that
+        were stored using linear interpolation
+        [
+            {'time': 1605124158.0, 'sht_temperature': 302.1, ...},
+            {'time': 1605124159.0, 'sht_temperature': 300.4, ...},
+            ...
+        ]
+    '''
     return store.get_history()
 
 

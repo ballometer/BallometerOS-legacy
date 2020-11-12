@@ -222,10 +222,10 @@ class Store:
 
     def _get_last_qnh(self) -> int:
         q = self._influx.query(
-            'SELECT "value" FROM "qnh" ORDER BY DESC LIMIT 1')
+            'SELECT "qnh" FROM "ballometer" ORDER BY DESC LIMIT 1')
         # list(q.get_points()) is
-        # [{'time': '2020-10-03T18:10:00Z', 'value': 1018.0}]
-        values = [int(point['value']) for point in q.get_points()]
+        # [{'time': '2020-10-03T18:10:00Z', 'qnh': 1018.0}]
+        values = [int(point['qnh']) for point in q.get_points()]
         if len(values) == 0:
             return 1013
         return values[0]
