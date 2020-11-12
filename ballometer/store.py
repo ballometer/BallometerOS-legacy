@@ -4,7 +4,6 @@ import time
 import requests
 import json
 import datetime
-from datetime.datetime import utcfromtimestamp
 import dateutil
 import calendar
 
@@ -80,9 +79,9 @@ class Store:
 
         self._influx.write_points([
             {
-                'measurement': key,
+                'measurement': 'ballometer',
                 'fields': {
-                    'value': float(value)
+                    key: float(value)
                 },
                 'time': datetime.datetime.fromtimestamp(unixtime).isoformat(),
                 'tags': {
@@ -134,7 +133,6 @@ class Store:
         query_str += ' GROUP BY time(1s) fill(linear)'
 
         q = self._influx.query(query_str)
-
         # list(q) ->
         # [[{'time': '2020-11-11T19:49:18Z', 'mean_field_1': None, ...},
         # ...
@@ -146,7 +144,6 @@ class Store:
             data = []
 
         res = [self._remove_mean(self._cast_time(point)) for point in data]
-
         return res
 
     def _str_to_unixtime(self, s):
@@ -160,14 +157,35 @@ class Store:
         '''
         unixtime_to_str(1605120075.645165) -> '2020-11-11T18:41:15.645165Z'
         '''
-        return utcfromtimestamp(t).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        d = datetime.datetime.utcfromtimestamp(t)
+        return d.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
 
     def _start_stop_time(self, flight_id):
+        start = 0.0
+        stop = 0.0
+        
         query_str = 'SELECT * FROM ballometer'
         query_str += ' WHERE flight_id = \'' + str(int(flight_id)) + '\''
+        query_str += ' LIMIT 1'
         q = self._influx.query(query_str)
-        t = [self._str_to_unixtime(point['time']) for point in list(q)[0]]
-        return min(t), max(t)
+        try:
+            t = [self._str_to_unixtime(point['time']) for point in list(q)[0]]
+            start = min(t)
+        except IndexError:
+            pass
+        
+        query_str = 'SELECT * FROM ballometer'
+        query_str += ' WHERE flight_id = \'' + str(int(flight_id)) + '\''
+        query_str += ' ORDER BY time DESC LIMIT 1'
+        q = self._influx.query(query_str)
+        try:
+            t = [self._str_to_unixtime(point['time']) for point in list(q)[0]]
+            stop = max(t)
+        except IndexError:
+            pass
+        
+        return start, stop
+        
 
     def _remove_mean(self, point):
         '''
