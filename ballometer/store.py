@@ -4,6 +4,9 @@ import time
 import requests
 import json
 import datetime
+from datetime.datetime import utcfromtimestamp
+import dateutil
+import calendar
 
 
 class Store:
@@ -112,22 +115,75 @@ class Store:
     def get_history(self):
         '''
         Returns for the current flight all the measurements that
-        were stored in the format
-        {
-            'bmp_pressure': [
-                {'value': 94349.0, 'unixtime': 123456.0},
-                {'value': 94834.3, 'unixtime': 123457.0},
-                ...
-            ],
-            'sht_temperature': [
-                {'value': 301.0, 'unixtime': 123456.0},
-                {'value': 300.3, 'unixtime': 123457.0},
-                ...
-            ],
+        were stored using linear interpolation
+        [
+            {'time': 1605124158.0, 'sht_temperature': 302.1, ...},
+            {'time': 1605124159.0, 'sht_temperature': 300.4, ...},
             ...
-        }
+        ]
         '''
-        return {}
+        res = []
+
+        start, stop = self._start_stop_time(self.flight_id)
+
+        query_str = 'SELECT mean(*)'
+        query_str += ' FROM ballometer'
+        query_str += ' WHERE flight_id = \'' + str(self.flight_id) + '\''
+        query_str += ' AND time > \'' + self._unixtime_to_str(start - 1) + '\''
+        query_str += ' AND time < \'' + self._unixtime_to_str(stop + 1) + '\''
+        query_str += ' GROUP BY time(1s) fill(linear)'
+
+        q = self._influx.query(query_str)
+
+        # list(q) ->
+        # [[{'time': '2020-11-11T19:49:18Z', 'mean_field_1': None, ...},
+        # ...
+        # ]]
+
+        try:
+            data = list(q)[0]
+        except IndexError:
+            data = []
+
+        res = [self._remove_mean(self._cast_time(point)) for point in data]
+
+        return res
+
+    def _str_to_unixtime(self, s):
+        '''
+        str_to_unixtime('2020-11-11T18:41:15.645165Z') ->1605120075.645165
+        '''
+        d = dateutil.parser.parse(s)
+        return calendar.timegm(d.timetuple()) + d.microsecond * 1e-6
+
+    def _unixtime_to_str(self, t):
+        '''
+        unixtime_to_str(1605120075.645165) -> '2020-11-11T18:41:15.645165Z'
+        '''
+        return utcfromtimestamp(t).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+
+    def _start_stop_time(self, flight_id):
+        query_str = 'SELECT * FROM ballometer'
+        query_str += ' WHERE flight_id = \'' + str(int(flight_id)) + '\''
+        q = self._influx.query(query_str)
+        t = [self._str_to_unixtime(point['time']) for point in list(q)[0]]
+        return min(t), max(t)
+
+    def _remove_mean(self, point):
+        '''
+        p = {'time': '...', 'mean_field_1': None, 'mean_field_2': None}
+        remove_mean(p) -> {'time': '...', 'field_1': None, 'field_2': None}
+        '''
+        return {key.replace('mean_', ''): point[key] for key in point}
+
+    def _cast_time(self, point):
+        '''
+        p = {'time': '2020-11-11T19:49:18Z', 'mean_field_1': ...}
+        cast_time(p) -> {'time': 1605124158.0, 'mean_field_1': ...}
+        '''
+        res = dict(point)
+        res['time'] = self._str_to_unixtime(point['time'])
+        return res
 
     def _get_volatile_float(self, key='key-name'):
         value = self._redis.get(key)
