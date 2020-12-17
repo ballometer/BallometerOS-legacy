@@ -47,6 +47,12 @@ class Store:
             # Get it from influxdb.
             qnh = self._get_last_qnh()
             self._set_volatile_float('qnh', float(qnh))
+            
+        if self._redis.get('uploaded_until') is None:
+            # Volatile redis key has not been set yet.
+            # Get it from influxdb.
+            uploaded_until = self._get_last_uploaded_until()
+            self._set_volatile_float('uploaded_until', float(uploaded_until))
 
     def clock_was_synchronized(self):
         return time.time() > 1601116701.0
@@ -145,6 +151,60 @@ class Store:
 
         res = [self._remove_mean(self._cast_time(point)) for point in data]
         return res
+    
+    def get_raw_points(self, start, limit):
+        '''
+        start: get point from but not including start unix timestamp
+        limit: maximum number of points to get with distinct timestamps
+        returns: 
+        [
+            {
+                'time': 1605120075.645165,
+                'sht_temperature': 304.5,
+                'flight_id': 1
+            },
+            {
+                'time': 1605120077.493095,
+                'sht_humidity': 43.3,
+                'flight_id': 1
+            },
+            ...
+        ]
+        '''
+        
+        result = []
+            
+        query_str = 'SELECT *'
+        query_str += ' FROM ballometer'
+        query_str += ' WHERE time > \'' + self._unixtime_to_str(start) + '\''
+        query_str += ' LIMIT ' + str(int(limit))
+        
+        q = self._influx.query(query_str)
+
+        try:
+            points = list(q)[0]
+        except IndexError:
+            points = []
+        
+        points = [{key: point[key] for key in point if point[key]} for point in points]
+        
+        for point in points:
+            point['time'] = self._str_to_unixtime(point['time'])
+            
+        # some points have multiple keys with the same timestamp, for example
+        # {'time': 1605197178.116631, 'bmp_pressure': 97070.8, 'flight_id': '38', 
+        # 'vario_altitude': 432.1882592305743, 'vario_speed': -0.0012395201852855582}
+        #
+        # split them into individual points
+        
+        for point in points:
+            time = point['time']
+            flight_id = point['flight_id']
+            result += [{
+                'time': time, 'flight_id': flight_id, key: point[key]
+            } for key in point if key != 'time' and key != 'flight_id']
+            
+        return result
 
     def _str_to_unixtime(self, s):
         '''
@@ -229,6 +289,16 @@ class Store:
         if len(values) == 0:
             return 1013
         return values[0]
+    
+    def _get_last_uploaded_until(self) -> float:
+        q = self._influx.query(
+            'SELECT "uploaded_until" FROM "upload" ORDER BY DESC LIMIT 1')
+        # list(q.get_points()) is
+        # [{'time': '2020-10-03T18:10:00Z', 'uploaded_until': 1605197196.978443}]
+        values = [float(point['uploaded_until']) for point in q.get_points()]
+        if len(values) == 0:
+            return 0.0
+        return values[0]
 
     @property
     def recording(self) -> bool:
@@ -254,3 +324,19 @@ class Store:
     def qnh(self, value: int):
         self.save('qnh', float(value))
         self._set_volatile_float('qnh', float(value))
+        
+    @property
+    def uploaded_until(self) -> float:
+        return float(self._get_volatile_float('uploaded_until'))
+    
+    @uploaded_until.setter
+    def uploaded_until(self, value: float):
+        self._influx.write_points([
+            {
+                'measurement': 'upload',
+                'fields': {
+                    'uploaded_until': float(value)
+                }
+            }
+        ])
+        self._set_volatile_float('uploaded_until', float(value))
