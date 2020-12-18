@@ -17,11 +17,8 @@ class Store:
         is ready to use.
         '''
 
-        self._db_name = 'ballometer'
-        self._influx = influxdb.InfluxDBClient()
-        if self._influx.switch_database(self._db_name) is None:
-            self._influx.create_database(self._db_name)
 
+        self._influx = influxdb.InfluxDBClient()
         self._redis = redis.Redis(decode_responses=True)
 
         while True:
@@ -35,6 +32,10 @@ class Store:
             except redis.exceptions.ConnectionError:
                 print('Redis is not ready')
                 time.sleep(5)
+
+        self._db_name = 'ballometer'
+        if self._influx.switch_database(self._db_name) is None:
+            self._influx.create_database(self._db_name)
 
         if self._redis.get('flight_id') is None:
             # Volatile redis key has not been set yet.
