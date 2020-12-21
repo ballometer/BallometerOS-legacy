@@ -122,7 +122,7 @@ def menu(params):
     lcd.cursor_pos = (0, 0)
     lcd.write_string('MENU')
 
-    items = ['REC', 'WIFI', 'UPDATE']
+    items = ['REC', 'QNH', 'WIFI', 'UPDATE']
     item = items[_choose(lcd=lcd, buttons=buttons, items=items)]
 
     if buttons.no:
@@ -133,6 +133,9 @@ def menu(params):
 
     if item == 'WIFI':
         return wifi, params
+    
+    if item == 'QNH':
+        return qnh, params
 
     return update, params
 
@@ -164,7 +167,21 @@ def rec(params):
         lcd.write_string('FLIGHT ID %i' % store.flight_id)
         time.sleep(2.0)
         store.recording = True
-        return rec_qnh, params
+        
+        lcd.clear()
+        lcd.write_string('WAITING FOR GPS\r\nOR INTERNET TIME')
+        time.sleep(1.0)
+        
+        while not store.clock_was_synchronized():
+            time.sleep(1.0)
+            if buttons.no:
+                lcd.clear()
+                lcd.write_string('STOP REC...')
+                time.sleep(2.0)
+                store.recording = False
+                return home, params
+            
+        return qnh, params
 
     elif item == 'CONTINUE':
         lcd.clear()
@@ -175,7 +192,21 @@ def rec(params):
         lcd.write_string('FLIGHT ID %i' % store.flight_id)
         time.sleep(2.0)
         store.recording = True
-        return rec_qnh, params
+        
+        lcd.clear()
+        lcd.write_string('WAITING FOR GPS\r\nOR INTERNET TIME')
+        time.sleep(1.0)
+        
+        while not store.clock_was_synchronized():
+            time.sleep(1.0)
+            if buttons.no:
+                lcd.clear()
+                lcd.write_string('STOP REC...')
+                time.sleep(2.0)
+                store.recording = False
+                return home, params
+            
+        return qnh, params
 
     elif item == 'STOP':
         lcd.clear()
@@ -189,7 +220,7 @@ def rec(params):
         return home, params
 
 
-def rec_qnh(params):
+def qnh(params):
     lcd = params['lcd']
     buttons = params['buttons']
     store = ballometer.Store()
@@ -200,7 +231,7 @@ def rec_qnh(params):
     text = 'QNH:\r\n' + last_qnh
     lcd.write_string(text)
 
-    cursor = 0
+    cursor = 3
     shift = 0
 
     lcd.cursor_mode = 'line'
@@ -289,20 +320,9 @@ def rec_qnh(params):
     qnh = int(''.join([letters[code] for code in text_codes]).strip())
 
     if not (800 < qnh < 1200):
-        lcd.write_string('OUT OF RANGE')
+        lcd.write_string('OUT OF RANGE\r\n800 < QNH < 1200')
         time.sleep(2.0)
-        return rec_qnh, params
-
-    lcd.clear()
-    lcd.write_string('WAITING FOR GPS\r\nOR NETWORK TIME')
-    while not store.clock_was_synchronized():
-        time.sleep(1.0)
-        if buttons.no:
-            lcd.clear()
-            lcd.write_string('STOP REC...')
-            time.sleep(2.0)
-            store.recording = False
-            return home, params
+        return qnh, params
 
     lcd.write_string('SETTING QNH...')
     store.qnh = qnh
