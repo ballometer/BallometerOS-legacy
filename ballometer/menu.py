@@ -1,4 +1,5 @@
 import time
+import json
 from . import wifi as w
 from . import update as u
 import ballometer
@@ -35,8 +36,35 @@ def startup(params):
     lcd = params['lcd']
 
     lcd.clear()
-    lcd.write_string('HELLO FROM\r\nBALLOMETER')
-    time.sleep(1.0)
+    
+    def get_username_password():
+        username = 'default-user-name'
+        password = 'default-password'
+
+        try:
+            # this file should look like
+            # {
+            #     "username": "your-username",
+            #     "password": "your-password"
+            # }
+            with open('/data/credentials.json') as f:
+                credentials = json.load(f)
+                username = credentials['username']
+                password = credentials['password']
+                
+        except json.decoder.JSONDecodeError as e:
+            print('json.decoder.JSONDecodeError ' + format(e))
+        except FileNotFoundError as e:
+            print('FileNotFoundError ' + format(e))
+        except KeyError as e:
+            print('KeyError ' + format(e))
+            
+        return username, password
+    
+    username, _ = get_username_password()
+    
+    lcd.write_string('BALLOMETER:\r\nHOI ' + username.upper())
+    time.sleep(3.0)
 
     lcd.clear()
     lcd.write_string('CURRENT RELEASE\r\n' + u.get_current_release())
@@ -49,13 +77,15 @@ def home(params):
     lcd = params['lcd']
     buttons = params['buttons']
 
+    store = ballometer.Store()
+    
     lcd.clear()
     lcd.cursor_pos = (0, 0)
 
     last_ip = w.get_ip()
 
     lcd.write_string(last_ip + '\r\n>MENU')
-    store = ballometer.Store()
+    
     check_interval = 1  # s
     last_check = time.time()
 
