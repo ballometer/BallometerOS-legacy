@@ -96,6 +96,46 @@ class Store:
                 }
             }
         ])
+        
+    def multi_save(self, keys=['key-name'], values=[1.0], unixtime=None):
+        '''
+        Stores data permanently in influxdb if the system clock has been
+        synchronized (and is not at 1970 any more) and recording has
+        been turned on.
+        '''
+        if unixtime is None:
+            unixtime = time.time()
+
+        for key, value in zip(keys, values):
+            serialized = json.dumps({'value': value, 'unixtime': unixtime})
+            redis_key = f'save:{key}'
+            self._redis.publish(redis_key, serialized)
+            self._redis.set(redis_key, serialized)
+            self._redis.sadd('save', key)
+
+        if not self.clock_was_synchronized():
+            # The system time is not synchronized yet
+            # and is probably still at the default value
+            # in year 1970. Skip writing to influxdb.
+            return
+
+        if not self.recording:
+            # Recording has not been turned on (yet)
+            # by the user. Skip writing to influxdb.
+            return
+
+        fields = {key: float(value) for key, value in zip(keys, values)}
+        
+        self._influx.write_points([
+            {
+                'measurement': 'ballometer',
+                'fields': fields,
+                'time': datetime.datetime.fromtimestamp(unixtime).isoformat(),
+                'tags': {
+                    'flight_id': str(self.flight_id)
+                }
+            }
+        ])
 
     def get_saved(self):
         '''
