@@ -9,21 +9,38 @@ lsm = ballometer.LSM()
 store = ballometer.Store()
 
 while True:
-    store.save(key='bmp_pressure', value=bmp.pressure)
-    store.save(key='bmp_temperature', value=bmp.temperature)
+    keys = []
+    values = []
+    
+    keys.append('bmp_pressure')
+    values.append(bmp.pressure)
+    keys.append('bmp_temperature')
+    values.append(bmp.temperature)
 
-    store.save(key='sht_temperature', value=sht.temperature)
-    store.save(key='sht_humidity', value=sht.humidity)
+    keys.append('sht_temperature')
+    values.append(sht.temperature)
+    keys.append('sht_humidity')
+    values.append(sht.humidity)
 
-    store.save(key='tsl_visible', value=tsl.visible)
-    store.save(key='tsl_infrared', value=tsl.infrared)
+    keys.append('tsl_visible')
+    values.append(tsl.visible)
+    keys.append('tsl_infrared')
+    values.append(tsl.infrared)
 
-    store.save(key='lsm_accel_x', value=lsm.accel_x)
-    store.save(key='lsm_accel_y', value=lsm.accel_y)
-    store.save(key='lsm_accel_z', value=lsm.accel_z)
+    keys.append('lsm_accel_x')
+    values.append(lsm.accel_x)
+    keys.append('lsm_accel_y')
+    values.append(lsm.accel_y)
+    keys.append('lsm_accel_z')
+    values.append(lsm.accel_z)
 
-    store.save(key='lsm_mag_x', value=lsm.mag_x)
-    store.save(key='lsm_mag_y', value=lsm.mag_y)
-    store.save(key='lsm_mag_z', value=lsm.mag_z)
+    keys.append('lsm_mag_x')
+    values.append(lsm.mag_x)
+    keys.append('lsm_mag_y')
+    values.append(lsm.mag_y)
+    keys.append('lsm_mag_z')
+    values.append(lsm.mag_z)
+    
+    store.multi_save(keys=keys, values=values)
 
     time.sleep(1.0)

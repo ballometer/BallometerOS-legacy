@@ -20,32 +20,42 @@ while not time_was_set:
             time_was_set = True
 
 store = ballometer.Store()
-        
+
+last_write = 0
+
 while True:
     gps.update()
-    if gps.has_fix:
+    if gps.has_fix and time.time() > last_write + 1:
+        keys = []
+        values = []
         if gps.latitude is not None:
-            store.save(key='gps_latitude', value=gps.latitude)
+            keys.append('gps_latitude')
+            values.append(gps.latitude)
 
         if gps.longitude is not None:
-            store.save(key='gps_longitude', value=gps.longitude)
+            keys.append('gps_longitude')
+            values.append(gps.longitude)
         
         if gps.altitude_m is not None:
-            store.save(key='gps_altitude', value=gps.altitude_m)
+            keys.append('gps_altitude')
+            values.append(gps.altitude_m)
 
         if gps.speed_knots is not None:
             speed = gps.speed_knots * 0.514444  # m/s
-            store.save(key='gps_speed', value=speed)
+            keys.append('gps_speed')
+            values.append(speed)
        
         if gps.track_angle_deg is not None:
-            store.save(key='gps_heading', value=gps.track_angle_deg)
+            keys.append('gps_heading')
+            values.append(gps.track_angle_deg)
 
         if gps.satellites is not None:
-            store.save(key='gps_satellites', value=gps.satellites)
+            keys.append('gps_satellites')
+            values.append(gps.satellites)
 
         if gps.horizontal_dilution is not None:
-            store.save(key='gps_horizontal_dilution', value=gps.horizontal_dilution)
-
-        time.sleep(1)
-    else:
-        time.sleep(0.1)
+            keys.append('gps_horizontal_dilution')
+            values.append(gps.horizontal_dilution)
+        
+        store.multi_save(keys=keys, values=values)
+        last_write = time.time()
