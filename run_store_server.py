@@ -16,65 +16,14 @@ app.add_middleware(
 store = ballometer.Store()
 
 
-@app.get('/clock_was_synchronized')
-def clock_was_synchronized() -> bool:
-    return store.clock_was_synchronized()
-
-
-@app.get('/get_saved')
-def get_saved():
-    '''
-        Returns for all the keys the last value that was
-        saved in the format
-        {
-            'bmp_pressure': {
-                'value': 98443.0,
-                'unixtime': 123456.0
-            },
-            'sht_temperature': {
-                'value': 302.1,
-                'unixtime': 123456.0
-            },
-            ...
-        }
-    '''
-    return store.get_saved()
-
-
-@app.get('/get_history')
-def get_history():
-    '''
-        Returns for the current flight all the measurements that
-        were stored using linear interpolation
-        [
-            {'time': 1605124158.0, 'sht_temperature': 302.1, ...},
-            {'time': 1605124159.0, 'sht_temperature': 300.4, ...},
-            ...
-        ]
-    '''
-    return store.get_history()
-
-
-@app.get('/recording')
-def recording() -> bool:
-    return store.recording
-
-
-@app.get('/flight_id')
-def flight_id() -> int:
-    return store.flight_id
-
-
-@app.get('/qnh')
-def qnh() -> int:
-    return store.qnh
-
-
 @app.get('/now')
 def get_now():
     '''
         Returns the last measurement of altitude, speed,
-        heading, climb, longitude, and latitude:
+        heading, climb, longitude, and latitude. The
+        timestamp indicated when the request was processed.
+        The field 'recording' shows if the ballometer
+        was recording at the time of the request.
         {  
             'altitude': 1464.343,
             'speed': 8.6,
@@ -82,7 +31,8 @@ def get_now():
             'climb': 1.6,
             'longitude': 8.43490,
             'latitude': 43.4309
-            'time': 1608397940.45
+            'time': 1608397940.45,
+            'recording': True
         }
     '''
     result = {}
@@ -105,14 +55,18 @@ def get_now():
             result[key] = None
 
     result['time'] = time.time()
+    
+    result['recording'] = store.recording
 
     return result
 
-@app.get('/before')
-def get_before():
+@app.get('/points')
+def get_points(flightId: int = None):
     '''
-    Returns the interpolated measurements of the current 
-    flight in the form:
+    Returns all the measurements that were stored using linear 
+    interpolation. Interval ist 1000 ms up to one hour recording
+    and increases then to keep maximal number of points at 3600.
+    If flighId is None, returns data for the latest flight.
     {
         'altitude': [918.8838187009885, 919.222839137572, ...], 
         'speed': [12.3, 13.4, ...],
@@ -137,7 +91,7 @@ def get_before():
     for key in ui_store_mapping:
         result[key] = []
 
-    points = store.get_history()
+    points = store.get_history(flight_id=flightId)
 
     for point in points:
         for key in ui_store_mapping:
@@ -145,6 +99,21 @@ def get_before():
                 result[key].append(point[ui_store_mapping[key]])
             except KeyError:
                 result[key].append(None)
+
+    return result
+
+
+@app.get('/listFlights')
+def list_flights():
+    result = []
+
+    for flight_id in range(store.flight_id):
+        start = store.start_time(flight_id)
+        if start != 0.0:
+            result.append({
+                'flight_id': flight_id,
+                'start': start
+            })
 
     return result
 
