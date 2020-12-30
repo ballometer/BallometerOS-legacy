@@ -1,0 +1,4 @@
+config BR2_PACKAGE_LOCAL_UI
+    bool "local-ui"
+    help
+        Web frontend for the local deployment of the ballometer. 
