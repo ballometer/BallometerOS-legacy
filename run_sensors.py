@@ -43,4 +43,4 @@ while True:
     
     store.multi_save(keys=keys, values=values)
 
-    time.sleep(1.0)
+    time.sleep(0.7)  # loop execution takes 200 ms

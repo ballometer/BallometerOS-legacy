@@ -25,7 +25,8 @@ last_write = 0
 
 while True:
     gps.update()
-    if gps.has_fix and time.time() > last_write + 1:
+    # loop execution takes 35 ms
+    if gps.has_fix and time.time() > last_write + 0.8:
         keys = []
         values = []
         if gps.latitude is not None:
