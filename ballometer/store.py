@@ -158,10 +158,12 @@ class Store:
             for key in self._redis.smembers('save')
         }
 
-    def get_history(self):
+    def get_history(self, flight_id=None):
         '''
-        Returns for the current flight all the measurements that
-        were stored using linear interpolation
+        Returns all the measurements that were stored using linear 
+        interpolation. Interval ist 1000 ms up to one hour recording
+        and increases then to keep maximal number of points at 3600.
+        If fligh_id is None, returns data for the latest flight.
         [
             {'time': 1605124158.0, 'sht_temperature': 302.1, ...},
             {'time': 1605124159.0, 'sht_temperature': 300.4, ...},
@@ -170,7 +172,13 @@ class Store:
         '''
         res = []
 
-        start, stop = self._start_stop_time(self.flight_id)
+        if flight_id is None:
+            my_flight_id = self.flight_id
+        else:
+            my_flight_id = flight_id
+
+        start = self.start_time(my_flight_id)
+        stop = self.stop_time(my_flight_id)
 
         # Query at most 3600 points. If recording is shorter than
         # 1 hour, the intervall is 1000 ms, else it gets longer.
@@ -182,7 +190,7 @@ class Store:
         
         query_str = 'SELECT mean(*)'
         query_str += ' FROM ballometer'
-        query_str += ' WHERE flight_id = \'' + str(self.flight_id) + '\''
+        query_str += ' WHERE flight_id = \'' + str(my_flight_id) + '\''
         query_str += ' AND time >= \'' + self._unixtime_to_str(start) + '\''
         query_str += ' AND time <= \'' + self._unixtime_to_str(stop) + '\''
         query_str += ' GROUP BY time(' + str(interval_ms) + 'ms) fill(linear)'
@@ -269,9 +277,9 @@ class Store:
         d = datetime.datetime.utcfromtimestamp(t)
         return d.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
 
-    def _start_stop_time(self, flight_id):
+    
+    def start_time(self, flight_id):
         start = 0.0
-        stop = 0.0
         
         query_str = 'SELECT * FROM ballometer'
         query_str += ' WHERE flight_id = \'' + str(int(flight_id)) + '\''
@@ -283,6 +291,12 @@ class Store:
         except IndexError:
             pass
         
+        return start
+    
+    
+    def stop_time(self, flight_id):
+        stop = 0.0
+        
         query_str = 'SELECT * FROM ballometer'
         query_str += ' WHERE flight_id = \'' + str(int(flight_id)) + '\''
         query_str += ' ORDER BY time DESC LIMIT 1'
@@ -293,7 +307,7 @@ class Store:
         except IndexError:
             pass
         
-        return start, stop
+        return stop
         
 
     def _remove_mean(self, point):
