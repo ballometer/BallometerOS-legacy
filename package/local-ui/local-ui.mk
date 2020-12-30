@@ -10,9 +10,9 @@ LOCAL_UI_SITE = https://github.com/wipfli/local-ui/releases/download/v$(LOCAL_UI
 LOCAL_UI_LICENSE = MIT
 
 define LOCAL_UI_INSTALL_TARGET_CMDS
-	rm -rf $(TARGET_DIR)/root/local-ui
-	mkdir $(TARGET_DIR)/root/local-ui
-	cp -Rp $(@D)/* $(TARGET_DIR)/root/local-ui
+	rm -rf $(TARGET_DIR)/var/www/local-ui
+	mkdir $(TARGET_DIR)/var/www/local-ui
+	cp -Rp $(@D)/* $(TARGET_DIR)/var/www/local-ui
 endef
 
 $(eval $(generic-package))
