@@ -107,7 +107,7 @@ def get_points(flightId: int = None):
 def list_flights():
     result = []
 
-    for flight_id in range(store.flight_id):
+    for flight_id in range(store.flight_id + 1):
         start = store.start_time(flight_id)
         if start != 0.0:
             result.append({
