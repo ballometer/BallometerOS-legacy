@@ -11,7 +11,7 @@ LOCAL_UI_LICENSE = MIT
 
 define LOCAL_UI_INSTALL_TARGET_CMDS
 	rm -rf $(TARGET_DIR)/var/www/local-ui
-	mkdir $(TARGET_DIR)/var/www/local-ui
+	mkdir -p $(TARGET_DIR)/var/www/local-ui
 	cp -Rp $(@D)/* $(TARGET_DIR)/var/www/local-ui
 endef
 
