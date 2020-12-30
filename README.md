@@ -86,3 +86,32 @@ xz -kv9 boot.tar
 ```
 The checksums file ```checksums.json``` is created by running on the ballometer device after the installation a function of the update process. These checksums are meant to check for file integrity *after* the installation.
 
+
+## Resize ```/data``` partition
+
+Plug the SD card with the full system image into a raspberry pi. Check that the devices appear with
+```bash
+ls /dev/sda*
+# /dev/sda   /dev/sda1  /dev/sda2  /dev/sda3  /dev/sda4
+```
+
+Resize the partition with fdisk:
+
+```bash
+fdisk /dev/sda
+# d (delete)
+# 4 (partition 4)
+# n (new)
+# p (primary)
+# w (write)
+``` 
+
+Resize filesystem to fill partition:
+
+```bash
+resize2fs /dev/sda4
+# Resizing the filesystem on /dev/sda4 to 124123132 (1k) blocks.
+# The filesystem on /dev/sda4 is now 124123132 (1k) blocks long.
+```
+
+
