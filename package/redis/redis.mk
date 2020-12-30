@@ -57,7 +57,7 @@ endef
 
 define REDIS_INSTALL_INIT_SYSV
 	$(INSTALL) -m 0755 -D package/redis/S50redis \
-		$(TARGET_DIR)/etc/init.d/S50redis
+		$(TARGET_DIR)/etc/init.d/S03redis
 endef
 
 define REDIS_INSTALL_INIT_SYSTEMD
