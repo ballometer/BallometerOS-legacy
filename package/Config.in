@@ -2577,4 +2577,8 @@ menu "Ballometer"
 	source "package/ballometer/Config.in"
 endmenu
 
+menu "local-ui"
+	source "package/local-ui/Config.in"
+endmenu
+
 endmenu
