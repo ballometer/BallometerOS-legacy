@@ -172,12 +172,20 @@ class Store:
 
         start, stop = self._start_stop_time(self.flight_id)
 
+        # Query at most 3600 points. If recording is shorter than
+        # 1 hour, the intervall is 1000 ms, else it gets longer.
+        # Examples: 
+        # 5 minutes recording -> 1000 ms interval
+        # 1 hour recording -> 1000 ms interval
+        # 2 hours recording -> 2000 ms interval
+        interval_ms = max(1000, int((stop - start) / 3600 / 1e-3))
+        
         query_str = 'SELECT mean(*)'
         query_str += ' FROM ballometer'
         query_str += ' WHERE flight_id = \'' + str(self.flight_id) + '\''
-        query_str += ' AND time > \'' + self._unixtime_to_str(start - 1) + '\''
-        query_str += ' AND time < \'' + self._unixtime_to_str(stop + 1) + '\''
-        query_str += ' GROUP BY time(1s) fill(linear)'
+        query_str += ' AND time >= \'' + self._unixtime_to_str(start) + '\''
+        query_str += ' AND time <= \'' + self._unixtime_to_str(stop) + '\''
+        query_str += ' GROUP BY time(' + str(interval_ms) + 'ms) fill(linear)'
 
         q = self._influx.query(query_str)
         # list(q) ->
