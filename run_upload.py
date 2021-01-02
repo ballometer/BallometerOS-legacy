@@ -47,10 +47,10 @@ def get_jwt_token(username, password):
     }
     
     try:
-        r = requests.post(ballometer_url + '/auth/login', 
+        r = requests.post(ballometer_url + '/api/auth/login', 
                           json=body, timeout=15)
     except requests.exceptions.ConnectTimeout:
-        handleOffline()
+        handle_offline()
         return ''
     
     if r.status_code == 403:
@@ -107,7 +107,7 @@ while True:
                             headers={'Authorization': 'Bearer ' + token},
                             timeout=15)
         except requests.exceptions.ConnectTimeout:
-            handleOffline()
+            handle_offline()
             time.sleep(10)
             continue
         
