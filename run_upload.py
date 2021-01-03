@@ -94,7 +94,7 @@ while True:
             break
 
     while True:
-        points = store.get_raw_points(start=store.uploaded_until, limit=100)
+        points = store.get_raw_points(start=store.uploaded_until, limit=50)
 
         if len(points) == 0:
             # no data to upload
