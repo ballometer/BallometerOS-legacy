@@ -12,18 +12,16 @@ p = r.pubsub(ignore_subscribe_messages=True)
 p.subscribe('save:bmp_pressure')
 
 ignore_speed_until = time.time() + 10  # s
-first_message = True
 
 qnh_old = store.qnh
 qnh_now = qnh_old
 
 for message in p.listen():
-    if first_message:
-        ignore_speed_until = time.time() + 10  # s
-        first_message = False
     
     qnh_now = store.qnh
     if qnh_now != qnh_old:
+        # reset Kalman filter
+        vario = ballometer.Vario()
         ignore_speed_until = time.time() + 10  # s
         qnh_old = qnh_now
 
