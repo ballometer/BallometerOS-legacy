@@ -8,6 +8,7 @@ from .tsl import TSL
 from .gps import GPS
 from .store import Store
 from .vario import Vario
+from .log_level import get_log_level
 from . import menu
 from . import wifi
 from . import update
