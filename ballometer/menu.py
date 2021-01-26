@@ -122,20 +122,20 @@ def menu(params):
     lcd.cursor_pos = (0, 0)
     lcd.write_string('MENU')
 
-    items = ['REC', 'QNH', 'WIFI', 'UPDATE']
+    items = ['QNH', 'REC', 'WIFI', 'UPDATE']
     item = items[_choose(lcd=lcd, buttons=buttons, items=items)]
 
     if buttons.no:
         return home, params
+
+    if item == 'QNH':
+        return qnh, params
 
     if item == 'REC':
         return rec, params
 
     if item == 'WIFI':
         return wifi, params
-    
-    if item == 'QNH':
-        return qnh, params
 
     return update, params
 
@@ -157,70 +157,118 @@ def rec(params):
     if buttons.no:
         return menu, params
 
+    
+    store = ballometer.Store()
+
     if item == 'START':
+        lcd.clear()
+        lcd.write_string('WAITING FOR GPS\r\nOR INTERNET TIME')
+        time.sleep(1.0)
+        while not store.clock_was_synchronized():
+            time.sleep(1.0)
+            if buttons.no:
+                lcd.clear()
+                lcd.write_string('CANCEL...')
+                time.sleep(2.0)
+                return home, params
+
         lcd.clear()
         lcd.cursor_pos = (0, 0)
         lcd.write_string('START REC...')
-        store = ballometer.Store()
         store.flight_id += 1
+        store.recording = True
         lcd.cursor_pos = (1, 0)
         lcd.write_string('FLIGHT ID %i' % store.flight_id)
         time.sleep(2.0)
-        store.recording = True
-        
+            
+        return home, params
+
+    if item == 'CONTINUE':
         lcd.clear()
         lcd.write_string('WAITING FOR GPS\r\nOR INTERNET TIME')
         time.sleep(1.0)
-        
         while not store.clock_was_synchronized():
             time.sleep(1.0)
             if buttons.no:
                 lcd.clear()
-                lcd.write_string('STOP REC...')
+                lcd.write_string('CANCEL...')
                 time.sleep(2.0)
-                store.recording = False
                 return home, params
-            
-        return qnh, params
 
-    elif item == 'CONTINUE':
         lcd.clear()
         lcd.cursor_pos = (0, 0)
         lcd.write_string('CONTINUE REC...')
-        store = ballometer.Store()
+        store.recording = True
         lcd.cursor_pos = (1, 0)
         lcd.write_string('FLIGHT ID %i' % store.flight_id)
         time.sleep(2.0)
-        store.recording = True
-        
-        lcd.clear()
-        lcd.write_string('WAITING FOR GPS\r\nOR INTERNET TIME')
-        time.sleep(1.0)
-        
-        while not store.clock_was_synchronized():
-            time.sleep(1.0)
-            if buttons.no:
-                lcd.clear()
-                lcd.write_string('STOP REC...')
-                time.sleep(2.0)
-                store.recording = False
-                return home, params
             
-        return qnh, params
+        return home, params
 
-    elif item == 'STOP':
+    if item == 'STOP':
         lcd.clear()
         lcd.cursor_pos = (0, 0)
         lcd.write_string('STOP REC...')
-        store = ballometer.Store()
+        store.recording = False
         lcd.cursor_pos = (1, 0)
         lcd.write_string('FLIGHT ID %i' % store.flight_id)
         time.sleep(2.0)
-        store.recording = False
         return home, params
+    
+    return home, params
 
 
 def qnh(params):
+    lcd = params['lcd']
+    buttons = params['buttons']
+
+    lcd.clear()
+    lcd.cursor_pos = (0, 0)
+    lcd.write_string('QNH')
+
+    items = ['GET', 'SET']
+
+    buttons.await_unclick()
+
+    item = items[_choose(lcd=lcd, buttons=buttons, items=items)]
+
+    if buttons.no:
+        return menu, params
+
+    if item == 'GET':
+        return qnh_get, params
+
+    if item == 'SET':
+        return qnh_set, params
+
+    return home, params
+
+
+def qnh_get(params):
+    lcd = params['lcd']
+    buttons = params['buttons']
+    store = ballometer.Store()
+    last_qnh = '%04i' % int(store.qnh)
+
+    lcd.clear()
+    lcd.cursor_pos = (0, 0)
+    text = 'QNH:\r\n' + last_qnh
+    lcd.write_string(text)
+
+    buttons.await_unclick()
+
+    while True:
+        if buttons.yes or buttons.no:
+            break
+        time.sleep(0.05)
+    
+    if buttons.yes:
+        return home, params
+    else:
+        return qnh, params
+
+    
+def qnh_set(params):
     lcd = params['lcd']
     buttons = params['buttons']
     store = ballometer.Store()
@@ -315,18 +363,18 @@ def qnh(params):
     lcd.cursor_pos = (0, 0)
 
     if buttons.no:
-        return rec, params
-
-    qnh = int(''.join([letters[code] for code in text_codes]).strip())
-
-    if not (800 < qnh < 1200):
-        lcd.write_string('OUT OF RANGE\r\n800 < QNH < 1200')
-        time.sleep(2.0)
         return qnh, params
 
+    qnh_new = int(''.join([letters[code] for code in text_codes]).strip())
+
+    if not (800 < qnh_new < 1200):
+        lcd.write_string('OUT OF RANGE\r\n800 < QNH < 1200')
+        time.sleep(2.0)
+        return qnh_set, params
+
     lcd.write_string('SETTING QNH...')
-    store.qnh = qnh
-    time.sleep(2.0)
+    store.qnh = qnh_new
+    time.sleep(1.0)
 
     return home, params
 
