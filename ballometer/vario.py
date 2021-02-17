@@ -87,7 +87,7 @@ class Vario:
         self._F = [[1, 1], [0, 1]]
         self._H = [[1, 0]]
         self._P = [[1000, 0], [0, 1000]]
-        self._R = [[5]]
+        self._R = [[5e-3]]
         self._Q = [[2.5e-07, 5.0e-06], [5.0e-06, 1.0e-04]]
 
     @property
