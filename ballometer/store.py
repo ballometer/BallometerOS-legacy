@@ -79,7 +79,7 @@ class Store:
             # in year 1970. Skip writing to influxdb.
             return
 
-        if not self.recording:
+        if (not self.recording) and (key != 'qnh'):
             # Recording has not been turned on (yet)
             # by the user. Skip writing to influxdb.
             return
