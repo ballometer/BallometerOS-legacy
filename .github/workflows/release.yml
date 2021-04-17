@@ -14,6 +14,7 @@ jobs:
 
     - name: create prerelease
       id: create_prerelease
+      if: "contains(github.ref, 'rc')"
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -49,4 +50,4 @@ jobs:
         asset_path: ./output/images/sdcard.img.zip
         asset_name: sdcard.img.zip
         asset_content_type: application/zip
-        
+
