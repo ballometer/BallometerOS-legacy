@@ -12,8 +12,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: create release
-      id: create_release
+    - name: create prerelease
+      id: create_prerelease
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -21,4 +21,30 @@ jobs:
         tag_name: $${{ github.ref }}
         release_name: Release ${{ github.ref }}
         draft: false
-        prerelease: "contains(github.ref, 'rc')"
+        prerelease: true
+    
+    - name: create release
+      id: create_release
+      if: "!contains(github.ref, 'rc')"
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: $${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+    
+    - name: make artefact
+      run: mkdir -p output/images
+      run: touch output/images/sdcard.img.zip
+    
+    - name: upload release assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./output/images/sdcard.img.zip
+        asset_name: sdcard.img.zip
+        asset_content_type: application/zip
