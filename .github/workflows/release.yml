@@ -49,3 +49,4 @@ jobs:
         asset_path: ./output/images/sdcard.img.zip
         asset_name: sdcard.img.zip
         asset_content_type: application/zip
+        
