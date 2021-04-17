@@ -114,4 +114,12 @@ resize2fs /dev/sda4
 # The filesystem on /dev/sda4 is now 124123132 (1k) blocks long.
 ```
 
+## GitHub Actions Workflow
 
+```bash
+git commit -m "something something"
+git tag -a v1.1.20 -m "version 1.1.20"
+git push origin v1.1.20
+```
+
+for prereleases use ```v1.1.20-rc.1```.
