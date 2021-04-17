@@ -12,10 +12,22 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - run: touch hi.txt
+    - name: make mock assets
+      run: |
+        mkdir output/images
+        cd output/images
+        echo hi > sdcard.img
+        zip sdcard.img.zip sdcard.img
+        echo hi > rootfs.ext2
+        xz -kv9 rootfs.ext2
+        echo hi > boot.tar
+        xz -kv9 boot.tar
+        echo {} > sha256_checksums.json
 
     - name: create release
-      run: gh release create ${{ github.ref }} hi.txt
+      run: |
+        cd output/images
+        gh release create ${{ github.ref }} *.zip *.xz *.json
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
