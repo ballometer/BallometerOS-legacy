@@ -10,19 +10,29 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
 
-    - name: make mock assets
+    - run: make ballometer_defconfig
+    - run: touch board/ballometer/data/wpa_supplicant.conf
+    - run: make
+
+    - name: compress output files
       run: |
-        mkdir -p output/images
         cd output/images
-        echo hi > sdcard.img
-        zip sdcard.img.zip sdcard.img
-        echo hi > rootfs.ext2
         xz -kv9 rootfs.ext2
-        echo hi > boot.tar
+        cd os-p2
+        tar -cf ../boot.tar .
+        cd ..
         xz -kv9 boot.tar
-        echo {} > sha256_checksums.json
+        zip sdcard.img.zip sdcard.img
+        ls -lah
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - run: python3 get_sha256_checksums.py
+    - run: cat output/images/sha256_checksums.json
 
     - name: create release
       if: "!contains(github.ref, 'rc')"
