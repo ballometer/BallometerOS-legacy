@@ -39,7 +39,7 @@ jobs:
     - name: make artefact
       run: |
         mkdir -p output/images
-        touch output/images/sdcard.img.zip
+        touch output/images/sdcard.img.txt
     
     - name: upload release assets
       uses: actions/upload-release-asset@v1
@@ -47,7 +47,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./output/images/sdcard.img.zip
-        asset_name: sdcard.img.zip
-        asset_content_type: application/zip
+        asset_path: ./output/images/sdcard.img.txt
+        asset_name: sdcard.img.txt
 
