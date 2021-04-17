@@ -36,8 +36,9 @@ jobs:
         prerelease: false
     
     - name: make artefact
-      run: mkdir -p output/images
-      run: touch output/images/sdcard.img.zip
+      run: |
+        mkdir -p output/images
+        touch output/images/sdcard.img.zip
     
     - name: upload release assets
       uses: actions/upload-release-asset@v1
