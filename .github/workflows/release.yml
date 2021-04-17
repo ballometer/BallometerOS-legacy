@@ -14,4 +14,4 @@ jobs:
 
     - name: Prepare
       id: prepare
-      run: echo github.ref = $ {{ github.ref }}
+      run: echo github.ref = ${{ github.ref }}
