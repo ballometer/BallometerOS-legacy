@@ -27,7 +27,7 @@ jobs:
     - name: create release
       run: |
         cd output/images
-        gh release create ${{ github.ref }} *.zip *.xz *.json
+        gh release create ${GITHUB_REF##*/} *.zip *.xz *.json
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
