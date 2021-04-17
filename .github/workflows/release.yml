@@ -25,9 +25,17 @@ jobs:
         echo {} > sha256_checksums.json
 
     - name: create release
+      if: "!contains(github.ref, 'rc')"
       run: |
         cd output/images
         gh release create ${GITHUB_REF##*/} *.zip *.xz *.json
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: create prerelease
+      if: "contains(github.ref, 'rc')"
+      run: |
+        cd output/images
+        gh release create ${GITHUB_REF##*/} *.zip *.xz *.json -p
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
