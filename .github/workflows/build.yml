@@ -11,7 +11,7 @@ jobs:
     - run: touch board/ballometer/data/wpa_supplicant.conf
     - run: make
     - name: compress output files
-    - run: |
+      run: |
         cd output/images
         xz -kv9 rootfs.ext2
         cd os-p2
