@@ -12,21 +12,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: create prerelease
-      id: create_prerelease
-      if: contains(github.ref, 'rc')
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: $${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: false
-        prerelease: true
-    
     - name: create release
       id: create_release
-      if: "!contains(github.ref, 'rc')"
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -34,4 +21,4 @@ jobs:
         tag_name: $${{ github.ref }}
         release_name: Release ${{ github.ref }}
         draft: false
-        prerelease: false
+        prerelease: "contains(github.ref, 'rc')"
