@@ -1,0 +1,17 @@
+name: release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - v*
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Prepare
+      id: prepare
+      run: echo github.ref = $ {{ github.ref }}
