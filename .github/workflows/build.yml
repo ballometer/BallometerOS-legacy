@@ -12,14 +12,14 @@ jobs:
     - run: make
     - name: compress output files
     - run: |
-      cd output/images
-      xz -kv9 rootfs.ext2
-      cd os-p2
-      tar -cf ../boot.tar .
-      cd ..
-      xz -kv9 boot.tar
-      zip sdcard.img.zip sdcard.img
-      ls -lah
+        cd output/images
+        xz -kv9 rootfs.ext2
+        cd os-p2
+        tar -cf ../boot.tar .
+        cd ..
+        xz -kv9 boot.tar
+        zip sdcard.img.zip sdcard.img
+        ls -lah
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
