@@ -12,7 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - run: hi.txt
+    - run: touch hi.txt
 
     - name: create release
       run: gh release create ${{ github.ref }} hi.txt
