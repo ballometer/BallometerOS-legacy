@@ -5,13 +5,20 @@ import time
 
 
 request_timeout = 30
+github_user_repo = 'wipfli/buildroot'
 
 
 class UpdateError(Exception):
     pass
 
 
-def get_current_release():
+def get_installed_release():
+    '''
+    Reads the version from ```/root/release.json``` and returns it as a string.
+
+    Result example: ```'v1.1.21'```
+    '''
+
     try:
         with open('/root/release.json') as f:
             return json.load(f)
@@ -21,10 +28,17 @@ def get_current_release():
         raise UpdateError('JSONDecodeError')
 
 
-def get_releases():
+def get_available_releases():
+    '''
+    Connects to GitHub and searches for all available releases. 
+    The result is a list of releases ordered such that the newest release comes first.
+
+    Example result: ```['v1.1.21', 'v1.1.19', 'v1.1.18-rc.1']```
+    '''
+
     result = []
 
-    url = 'https://api.github.com/repos/wipfli/buildroot/releases'
+    url = f'https://api.github.com/repos/{github_user_repo}/releases'
     try:
         r = requests.get(url, timeout=request_timeout)
     except requests.exceptions.Timeout:
@@ -48,6 +62,10 @@ def get_releases():
 
 
 def install(release='v1.0.0', update_callback=lambda text: ()):
+    '''
+    Downloads ```boot.tar.xz``` and ```rootfs.ext2.xz``` from the assets of the GitHub release, extracts the contents and flashes it to the SD card, and makes sha256 checksums of the compressed files and compare them against the values specified in sha256_checksums.json that is also a release asset.
+    If no errors occure and the checksums match, the flag in ```/boot/select.txt``` gets updated to the passive partition which now contains the new files. 
+    '''
     passive_partition = _get_passive_partition()
     total_size = _get_total_size(release)
 
@@ -55,44 +73,41 @@ def install(release='v1.0.0', update_callback=lambda text: ()):
         text = 'ROOTFS ' + str(percentage) + ' %'
         update_callback(text)
 
-    _download_rootfs(release=release,
-                     passive_partition=passive_partition,
-                     progress_callback=progress_callback,
-                     total_size=total_size)
+    checksums = {}
+
+    checksums['rootfs.ext2.xz'] = _download_rootfs(
+        release=release,
+        passive_partition=passive_partition,
+        progress_callback=progress_callback,
+        total_size=total_size,
+    )
 
     update_callback('DOWNLOAD BOOT')
 
-    _download_boot(release=release, passive_partition=passive_partition)
+    checksums['boot.tar.xz'] = _download_boot(
+        release=release, 
+        passive_partition=passive_partition,
+    )
 
-    update_callback('MAKE CHECKSUMS')
-    checksums = _download_checksums(release=release)
-    checksum_rootfs = _get_checksum_rootfs(passive_partition)
-    checksum_boot = _get_checksum_boot(passive_partition=passive_partition)
+    checksums_github = _download_checksums(release=release)
 
-    if 'rootfs' not in checksums:
-        raise UpdateError('Checksum file misses rootfs')
+    if 'rootfs.ext2.xz' not in checksums_github:
+        raise UpdateError('GitHub checksum file misses rootfs.ext2.xz')
 
-    if 'boot' not in checksums:
-        raise UpdateError('Checksum file misses boot')
+    if 'boot.tar.xz' not in checksums_github:
+        raise UpdateError('GitHub checksum file misses boot.tar.xz')
 
-    if checksums['rootfs'] != checksum_rootfs:
-        raise UpdateError('Checksum rootfs is wrong')
+    if checksums['rootfs.ext2.xz'] != checksums_github['rootfs.ext2.xz']:
+        raise UpdateError('Checksum rootfs.ext2.xz is wrong')
 
-    if checksums['boot'] != checksum_boot:
-        raise UpdateError('Checksum boot is wrong')
+    if checksums['boot.tar.xz'] != checksums_github['boot.tar.xz']:
+        raise UpdateError('Checksum boot.tar.xz is wrong')
 
     update_callback('CHECKSUMS OK')
 
     time.sleep(1)
 
     _flash_boot_select(passive_partition=passive_partition)
-
-
-def create_checksums_json():
-    passive_partition = _get_passive_partition()
-    checksum_rootfs = _get_checksum_rootfs(passive_partition=passive_partition)
-    checksum_boot = _get_checksum_boot(passive_partition=passive_partition)
-    return json.dumps({'rootfs': checksum_rootfs, 'boot': checksum_boot})
 
 
 def _run(command='ls -lah'):
@@ -117,8 +132,7 @@ def _get_passive_partition():
 
 
 def _get_total_size(release='v1.0.0'):
-    url = 'https://github.com/wipfli/buildroot/releases/download/' + \
-        release + '/rootfs.ext2.xz'
+    url = f'https://github.com/{github_user_repo}/releases/download/{release}/rootfs.ext2.xz'
     try:
         r = requests.get(url, stream=True, timeout=request_timeout)
     except requests.exceptions.Timeout:
@@ -133,8 +147,7 @@ def _get_total_size(release='v1.0.0'):
 
 
 def _download_checksums(release='v1.0.0'):
-    url = 'https://github.com/wipfli/buildroot/releases/download/' + \
-        release + '/checksums.json'
+    url = f'https://github.com/{github_user_repo}/releases/download/{release}/sha256_checksums.json'
     try:
         r = requests.get(url, timeout=request_timeout)
     except requests.exceptions.Timeout:
@@ -155,9 +168,16 @@ def _download_rootfs(
         passive_partition='/dev/mmcblk0p3',
         progress_callback=lambda percentage: (),
         total_size=1.0):
+    '''
+    Downloads the compressed ```rootfs.ext2.xz``` from GitHub and flashes the content to the passive partition.
+    At the same time the sha256 sum of ```rootfs.ext2.xz``` is computed and returned at the end.
+
+    Return example: ```'b2561992faf0f4540b5bf761a7d147bbd8b344cb9f3040b5266842dfccb77de1'```
+    '''
+
+    sha_value = None
     try:
-        url = 'https://github.com/wipfli/buildroot/releases/download/' + \
-            release + '/rootfs.ext2.xz'
+        url = f'https://github.com/{github_user_repo}/releases/download/{release}/rootfs.ext2.xz'
         r = requests.get(url, stream=True, timeout=request_timeout)
 
         r.raise_for_status()
@@ -165,16 +185,21 @@ def _download_rootfs(
         last_percentage = 0
         progress_callback(last_percentage)
 
+        sha_command = ['sha256sum']
+        sha_pipe = subprocess.Popen(
+            sha_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
         xz_command = ['xz', '-d']
         xz_pipe = subprocess.Popen(
             xz_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
-        dd_command = ['dd', 'of=' + passive_partition, 'bs=1M']
+        dd_command = ['dd', f'of={passive_partition}', 'bs=1M']
         dd_pipe = subprocess.Popen(dd_command, stdin=xz_pipe.stdout)
 
         chunk_size = 8192
         for chunk in r.iter_content(chunk_size):
             xz_pipe.stdin.write(chunk)
+            sha_pipe.stdin.write(chunk)
             chunk_i += 1
             percentage = min(int(100 * chunk_i * chunk_size / total_size), 100)
             if percentage > last_percentage:
@@ -184,13 +209,28 @@ def _download_rootfs(
         xz_pipe.stdin.close()
         xz_pipe.wait()
         dd_pipe.wait()
+
+        sha_pipe.stdin.close()
+        sha_value = sha_pipe.stdout.readline().decode().strip().split(' ')[0]
+        sha_pipe.wait()
+
     except requests.exceptions.Timeout:
         raise UpdateError('Timout')
     except requests.exceptions.ConnectionError:
         raise UpdateError('ConnectionError')
 
+    return sha_value
 
 def _download_boot(release='v1.0.0', passive_partition='/dev/mmcblk0p3'):
+    '''
+    Downloads the compressed ```boot.tar.xz``` from GitHub and extracts the files to parts of the boot partition.
+    At the same time the sha256 sum of ```boot.tar.xz``` is computed and returned at the end.
+
+    Return example: ```'79dbca32e4f743a63b984e6b2b94495f1622343d1a3a6580733e5485b63fe706'```
+    '''
+
+    sha_value = None
+
     _run('mount -t vfat /dev/mmcblk0p1 /boot')
     folder = '/boot/os-p2'
     if passive_partition == '/dev/mmcblk0p3':
@@ -200,11 +240,14 @@ def _download_boot(release='v1.0.0', passive_partition='/dev/mmcblk0p3'):
     _run('mkdir ' + folder)
 
     try:
-        url = 'https://github.com/wipfli/buildroot/releases/download/' + \
-            release + '/boot.tar.xz'
+        url = f'https://github.com/{github_user_repo}/releases/download/{release}/boot.tar.xz'
         r = requests.get(url, stream=True, timeout=request_timeout)
 
         r.raise_for_status()
+
+        sha_command = ['sha256sum']
+        sha_pipe = subprocess.Popen(
+            sha_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
         xz_command = ['xz', '-d']
         xz_pipe = subprocess.Popen(
@@ -216,10 +259,16 @@ def _download_boot(release='v1.0.0', passive_partition='/dev/mmcblk0p3'):
         chunk_size = 8192
         for chunk in r.iter_content(chunk_size):
             xz_pipe.stdin.write(chunk)
+            sha_pipe.stdin.write(chunk)
 
         xz_pipe.stdin.close()
         xz_pipe.wait()
         tar_pipe.wait()
+
+        sha_pipe.stdin.close()
+        sha_value = sha_pipe.stdout.readline().decode().strip().split(' ')[0]
+        sha_pipe.wait()
+
     except requests.exceptions.Timeout:
         raise UpdateError('Timout')
     except requests.exceptions.ConnectionError:
@@ -227,34 +276,7 @@ def _download_boot(release='v1.0.0', passive_partition='/dev/mmcblk0p3'):
 
     _run('umount /boot')
 
-
-def _get_checksum_rootfs(passive_partition='/dev/mmcblk0p3'):
-    result = ''
-    _run('mount -o ro ' + passive_partition + ' /passive')
-    tar_pipe = subprocess.Popen(
-        ['tar', 'c', '/passive'], stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT)
-    result = subprocess.check_output(
-        'sha3sum', stdin=tar_pipe.stdout).decode().split(' ')[0]
-    _run('umount /passive')
-    return result
-
-
-def _get_checksum_boot(passive_partition='/dev/mmcblk0p3'):
-    result = ''
-    _run('mount -t vfat /dev/mmcblk0p1 /boot')
-
-    folder = '/boot/os-p2'
-    if passive_partition == '/dev/mmcblk0p3':
-        folder = '/boot/os-p3'
-
-    find_pipe = subprocess.Popen(
-        ['find', '.', '-exec', 'sha3sum', '{}', '\\;'],
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=folder)
-    result = subprocess.check_output(
-        'sha3sum', stdin=find_pipe.stdout).decode().split(' ')[0]
-    _run('umount /boot')
-    return result
+    return sha_value
 
 
 def _flash_boot_select(passive_partition='/dev/mmcblk0p3'):
@@ -267,6 +289,7 @@ def _flash_boot_select(passive_partition='/dev/mmcblk0p3'):
         _run('echo "cmdline=cmdline-p3.txt\r\n' +
              'os_prefix=os-p3/" > /boot/select.txt')
     else:
+        _run('umount /boot')
         raise UpdateError('Passive partition not matched')
 
     _run('umount /boot')
