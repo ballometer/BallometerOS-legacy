@@ -75,6 +75,7 @@ If you have modified the repository and staged some commits, you can create a ne
 
 ```bash
 git commit -m "something something"
+git push
 git tag -a v1.1.20 -m "version 1.1.20"
 git push origin v1.1.20
 ```
