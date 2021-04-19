@@ -105,8 +105,6 @@ install(release='v1.1.21', update_callback=print)
 # prints download and install progress
 ```
 
-See [```update_ballometer.py```](https://github.com/wipfli/buildroot/blob/main/board/ballometer/rootfs-overlay/usr/lib/python3.8/site-packages/update_ballometer.py) for more details.
-
 ## Resize ```/data``` partition
 
 Plug the SD card with the full system image into a raspberry pi. Check that the devices appear with
