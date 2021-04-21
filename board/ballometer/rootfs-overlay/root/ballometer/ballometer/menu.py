@@ -67,7 +67,7 @@ def startup(params):
     time.sleep(3.0)
 
     lcd.clear()
-    lcd.write_string('CURRENT RELEASE\r\n' + u.get_current_release())
+    lcd.write_string('RELEASE\r\n' + u.get_installed_release())
     time.sleep(1.5)
 
     return home, params
@@ -620,7 +620,7 @@ def update(params):
     buttons = params['buttons']
 
     try:
-        current_release = u.get_current_release()
+        current_release = u.get_installed_release()
     except u.UpdateError:
         lcd.clear()
         lcd.write_string('UPDATE ERROR')
@@ -629,11 +629,11 @@ def update(params):
         return home, params
 
     lcd.clear()
-    lcd.write_string('CURRENT RELEASE:\r\n' + current_release)
+    lcd.write_string('RELEASE:\r\n' + current_release)
     time.sleep(2)
 
     try:
-        releases = u.get_releases()
+        releases = u.get_available_releases()
     except u.UpdateError:
         lcd.clear()
         lcd.write_string('UPDATE ERROR')
