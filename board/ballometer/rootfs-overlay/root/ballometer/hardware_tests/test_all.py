@@ -27,7 +27,8 @@ print('###### test_update')
 test_update.test_all()
 
 print('###### test_wifi')
-test_wifi.test_all()
+# test_wifi.test_all()
+print('skipping wifi tests...')
 
 print('###### test_mic')
 test_mic.test_all()
