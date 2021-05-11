@@ -1,6 +1,6 @@
-# buildroot
+# BallometerOS
 
-Builds the operating system and environment for the ballometer device.
+BallometerOS is the operating system running on ballometer Raspberry Pi 3 B+ devices. It is based on [buildroot](https://github.com/buildroot/buildroot) and supports automatic over-the-air updates inspired by  Android's [A/B system updates approach](https://source.android.com/devices/tech/ota/ab).
 
 ## Overview
 
