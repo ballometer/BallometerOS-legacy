@@ -522,7 +522,7 @@ import time
 
 
 request_timeout = 30
-github_user_repo = 'wipfli/buildroot'
+github_user_repo = 'ballometer/BallometerOS'
 
 
 class UpdateError(Exception):
