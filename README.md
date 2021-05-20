@@ -4,14 +4,14 @@ BallometerOS is the operating system running on ballometer Raspberry Pi 3 B+ dev
 
 ## Overview
 
-A dual partition approad with an active and a passive rootfs allows for atomic updates of the entire operating system including installed programs.
+A dual partition approach with an active and a passive rootfs allows for atomic updates of the entire operating system including installed programs.
 
 There are four partitions:
 
- * mmcblk0p1 boot
- * mmcblk0p2 rootfs A
- * mmcblk0p3 rootfs B
- * mmcblk0p4 data
+ * `mmcblk0p1` boot
+ * `mmcblk0p2` rootfs A
+ * `mmcblk0p3` rootfs B
+ * `mmcblk0p4` data
  
 The size of partitions 2 and 3 is at least 4G. 
 
@@ -21,37 +21,25 @@ If this file content is
 cmdline=cmdline-p2.txt
 os_prefix=os-p2/
 ```
-then the system boots into partition mmcblk0p2 and uses the os files from boot folder os-p2. 
+then the system boots into partition `mmcblk0p2` and uses the os files from boot folder `os-p2`. 
 
 If the content of ```select.txt``` is
 ```
 cmdline=cmdline-p3.txt
 os_prefix=os-p3/
 ```
-then the system boots into partition mmcblk0p3 and uses the os files from boot folder os-p3.
+then the system boots into partition `mmcblk0p3` and uses the os files from boot folder `os-p3`.
+
+## Python scripts
+
+The python scripts that do the actual work of reading out the sensors and streaming the measurements to the server are located in [`board/ballometer/rootfs-overlay/root/ballometer`](https://github.com/ballometer/BallometerOS/tree/main/board/ballometer/rootfs-overlay/root/ballometer).
 
 ## Build locally
 
 ```bash
-git clone https://github.com/wipfli/buildroot.git
-cd buildroot
-make ballometer_defconfig
-```
-
-Create a file called ```board/ballometer/data/wpa_supplicant.conf``` and fill it with your wifi details:
-```
-ctrl_interface=/var/run/wpa_supplicant
-ap_scan=1
- 
-network={
-   ssid="your-wifi-name"
-   psk="your-wifi-password"
-}
-```
-
-To build the whole system run
-```bash
-make
+https://github.com/ballometer/BallometerOS.git
+cd BallometerOS
+make ballometer_defconfig && make
 ```
 
 This creates a bootable image in ```output/images/sdcard.img```.
@@ -75,7 +63,6 @@ If you have modified the repository and staged some commits, you can create a ne
 
 ```bash
 git commit -m "something something"
-git push
 git tag -a v1.1.20 -m "version 1.1.20"
 git push origin v1.1.20
 ```
@@ -90,21 +77,6 @@ Running ballometer devices download full-system updates from the [GitHub release
 Every release has a ```boot.tar.xz``` file which contains the linux kernel, device tree overlays, and raspberry pi bootloader files. 
 The rootfs including the programms and python scripts running in user space is contained in the release asset ```rootfs.ext2.xz```. 
 This file gets downloaded, extracted, and flashed to the passive partition by the update process.
-
-To install an update on a ballometer device run something like this:
-
-```python
-import ballometer_update
-
-print(ballometer_update.get_installed_release())
-# v1.1.20
-
-print(ballometer_update.get_available_releases())
-# ['v1.1.21', 'v1.1.20', 'v1.1.18-rc.1']
-
-install(release='v1.1.21', update_callback=print)
-# prints download and install progress
-```
 
 ## Resize ```/data``` partition
 
