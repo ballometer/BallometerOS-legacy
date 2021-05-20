@@ -66,7 +66,7 @@ If you have modified the repository and staged some commits, you can create a ne
 ```bash
 git commit -m "something something"
 git tag -a v1.1.20 -m "version 1.1.20"
-git push origin v1.1.20
+git push --atomic origin main v1.1.20
 ```
 
 This will trigger the release workflow and produce the release assets automatically. 
