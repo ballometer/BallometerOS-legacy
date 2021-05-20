@@ -2,6 +2,8 @@
 
 BallometerOS is the operating system running on ballometer Raspberry Pi 3 B+ devices. It is based on [buildroot](https://github.com/buildroot/buildroot) and supports automatic over-the-air updates inspired by  Android's [A/B system updates approach](https://source.android.com/devices/tech/ota/ab).
 
+https://ballometer.io/
+
 ## Overview
 
 A dual partition approach with an active and a passive rootfs allows for atomic updates of the entire operating system including installed programs.
