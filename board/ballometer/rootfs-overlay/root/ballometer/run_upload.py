@@ -144,7 +144,9 @@ def main():
             if time.time() - store.uploaded_until < 5:
                 time.sleep(1)
 
-try:
-    main()
-except:
-    logging.exception('')
+while True:
+    try:
+        main()
+    except:
+        print('houpsi...')
+    time.sleep(10)
