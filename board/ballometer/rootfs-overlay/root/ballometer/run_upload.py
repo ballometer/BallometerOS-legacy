@@ -15,7 +15,7 @@ logging.basicConfig(
 
 ballometer_url = os.environ.get('BALLOMETER_URL')
 if ballometer_url == None:
-    ballometer_url = 'https://ballometer.io'
+    ballometer_url = 'https://api.ballometer.io'
     
 
 logging.info('Starting run_upload...')
@@ -54,7 +54,7 @@ def get_jwt_token(username, password):
     }
     
     try:
-        r = requests.post(ballometer_url + '/api/auth/login', 
+        r = requests.post(ballometer_url + '/auth/login', 
                           json=body, timeout=15)
     except requests.exceptions.ConnectTimeout:
         handle_offline()
@@ -115,7 +115,7 @@ def main():
                 continue
             
             try:
-                r = requests.post(ballometer_url + '/api/upload/' + username, 
+                r = requests.post(ballometer_url + '/upload/' + username, 
                                 json=points,
                                 headers={'Authorization': 'Bearer ' + token},
                                 timeout=15)
