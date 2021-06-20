@@ -1,7 +1,9 @@
 import time
+import datetime
 import json
 from . import wifi as w
 from . import update as u
+from . import metar as m
 import ballometer
 
 
@@ -77,22 +79,28 @@ def home(params):
     lcd = params['lcd']
     buttons = params['buttons']
 
+    metar_done = params['metar_done']
+
     store = ballometer.Store()
     
     lcd.clear()
     lcd.cursor_pos = (0, 0)
 
-    last_ip = w.get_ip()
-
-    lcd.write_string(last_ip + '\r\n>MENU')
+    lcd.write_string('\r\n>MENU')
     
-    check_interval = 1  # s
-    last_check = time.time()
+    check_interval = 10  # s
+    last_check = 0
+    last_ip = ''
 
     buttons.await_unclick()
 
     while not buttons.yes:
         if last_check + check_interval < time.time():
+            if not metar_done:
+                data = m.get_metar(store.qnh_station_id)
+                if data != {}:
+                    return metar, params
+
             ip = w.get_ip()
 
             if ip != last_ip:
@@ -226,7 +234,7 @@ def qnh(params):
     lcd.cursor_pos = (0, 0)
     lcd.write_string('QNH')
 
-    items = ['GET', 'SET']
+    items = ['GET', 'SET', 'AIRPORT']
 
     buttons.await_unclick()
 
@@ -240,6 +248,9 @@ def qnh(params):
 
     if item == 'SET':
         return qnh_set, params
+
+    if item == 'AIRPORT':
+        return qnh_airport, params
 
     return home, params
 
@@ -377,6 +388,121 @@ def qnh_set(params):
     time.sleep(1.0)
 
     return home, params
+
+def qnh_airport(params):
+    lcd = params['lcd']
+    buttons = params['buttons']
+    store = ballometer.Store()
+
+    lcd.clear()
+    lcd.cursor_pos = (0, 0)
+
+    station_id = store.qnh_station_id
+    text = f'CHOOSE AIRPORT:\r\n{station_id}'
+    lcd.write_string(text)
+
+    cursor = 3
+    shift = 0
+
+    lcd.cursor_mode = 'line'
+    lcd.cursor_pos = (1, cursor)
+    buttons.await_unclick()
+
+    letters = [
+        ' ', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 
+        'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1',
+        '2', '3', '4', '5', '6', '7', '8', '9',
+    ]
+
+    text_max_length = 4
+    text_codes = [letters.index(letter) for letter in station_id]
+
+    while True:
+        while True:
+            begin_press = True
+            while buttons.up:
+                text_codes[cursor + shift] = text_codes[cursor + shift] + 1
+                text_codes[cursor + shift] %= len(letters)
+                lcd.write_string(letters[text_codes[cursor + shift]])
+                lcd.cursor_pos = (1, cursor)
+
+                if begin_press:
+                    time.sleep(0.2)
+                    begin_press = False
+                else:
+                    time.sleep(0.05)
+
+            while buttons.down:
+                text_codes[cursor + shift] = text_codes[cursor + shift] - 1
+                text_codes[cursor + shift] %= len(letters)
+                lcd.write_string(letters[text_codes[cursor + shift]])
+                lcd.cursor_pos = (1, cursor)
+
+                if begin_press:
+                    time.sleep(0.2)
+                    begin_press = False
+                else:
+                    time.sleep(0.05)
+
+            if buttons.left:
+                if cursor > 0:
+                    cursor -= 1
+                    lcd.cursor_pos = (1, cursor)
+                    time.sleep(0.3)
+                    break
+                elif cursor + shift > 0:
+                    shift -= 1
+                    lcd.cursor_pos = (1, 0)
+                    tmp = text_codes[shift:(shift + lcd.columns)]
+                    text = ''.join([letters[code] for code in tmp])
+                    lcd.write_string(text)
+                    lcd.cursor_pos = (1, cursor)
+                    time.sleep(0.3)
+                    break
+
+            if buttons.right:
+                if cursor < text_max_length - 1:
+                    cursor += 1
+                    lcd.cursor_pos = (1, cursor)
+                    time.sleep(0.3)
+                    break
+                elif cursor + shift < text_max_length - 1:
+                    shift += 1
+                    lcd.cursor_pos = (1, 0)
+                    tmp = text_codes[shift:(shift + lcd.columns)]
+                    text = ''.join([letters[code] for code in tmp])
+                    lcd.write_string(text)
+                    lcd.cursor_pos = (1, cursor)
+                    time.sleep(0.3)
+                    break
+
+            if buttons.a or buttons.b:
+                break
+
+        if buttons.a or buttons.b:
+            break
+
+    lcd.cursor_mode = 'hide'
+    lcd.clear()
+    lcd.cursor_pos = (0, 0)
+
+    if buttons.no:
+        return qnh, params
+
+    station_id_new = ''.join([letters[code] for code in text_codes]).strip()
+
+    data = m.get_metar(station_id_new)
+
+    if data == {}:
+        lcd.write_string(f'AIRPORT {station_id_new}\r\nNOT FOUND...')
+        time.sleep(3.0)
+        return home, params
+
+    lcd.write_string(f'AIRPORT FOUND:\r\n{data["station_id"]}')
+    store.qnh_station_id = station_id_new
+    time.sleep(3.0)
+
+    return metar, params
 
 
 def wifi(params):
@@ -688,5 +814,44 @@ def update(params):
             if buttons.any:
                 break
             time.sleep(0.01)
+
+    return home, params
+
+def metar(params):
+    lcd = params['lcd']
+    buttons = params['buttons']
+
+    params['metar_done'] = True
+
+    store = ballometer.Store()
+
+    lcd.clear()
+    lcd.cursor_pos = (0, 0)
+
+    data = m.get_metar(store.qnh_station_id)
+
+    if data == {}:
+        return home, params
+
+    d = datetime.datetime.utcfromtimestamp(data['time'])
+    message = f'{data["station_id"]} {d.strftime("%H%MZ")} Q{(data["press"] / 100):.0f}'
+    lcd.write_string(f'{message}')
+
+    items = ['COPY QNH', 'MANUAL QNH']
+    item = items[_choose(lcd=lcd, buttons=buttons, items=items)]
+
+    if buttons.no:
+        return home, params
+
+    if item == 'MANUAL QNH':
+        return qnh_set, params
+
+    if item == 'COPY QNH':
+        store.qnh = float(data["press"] / 100)
+        lcd.clear()
+        lcd.cursor_pos = (0, 0)
+        lcd.write_string(f'COPIED QNH Q{(data["press"] / 100):.0f}')
+        time.sleep(2)
+        return home, params
 
     return home, params

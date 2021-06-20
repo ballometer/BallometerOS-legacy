@@ -403,3 +403,17 @@ class Store:
             }
         ])
         self._set_volatile_float('uploaded_until', float(value))
+
+    @property
+    def qnh_station_id(self) -> str:
+        try:
+            with open('/data/qnh_station_id.json', 'r') as f:
+                return json.load(f)
+        except (FileNotFoundError, json.decoder.JSONDecodeError):
+            self.qnh_station_id = 'LSZH'
+            return 'LSZH'
+
+    @qnh_station_id.setter
+    def qnh_station_id(self, value):
+        with open('/data/qnh_station_id.json', 'w') as f:
+            json.dump(value, f)
