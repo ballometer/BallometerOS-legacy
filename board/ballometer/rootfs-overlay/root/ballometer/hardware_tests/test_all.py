@@ -26,8 +26,8 @@ test_tsl.test_all()
 print('###### test_update')
 test_update.test_all()
 
-print('###### test_wifi')
-test_wifi.test_all()
+print('###### skip test_wifi')
+# test_wifi.test_all()
 
 print('###### test_mic')
 test_mic.test_all()
