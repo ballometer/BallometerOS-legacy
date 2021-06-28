@@ -3,7 +3,6 @@ import test_lcd
 import test_lsm
 import test_sht
 import test_tsl
-import test_update
 import test_wifi
 import test_mic
 import test_gps
@@ -22,9 +21,6 @@ test_sht.test_all()
 
 print('###### test_tsl')
 test_tsl.test_all()
-
-print('###### test_update')
-test_update.test_all()
 
 print('###### skip test_wifi')
 # test_wifi.test_all()
