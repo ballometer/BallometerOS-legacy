@@ -369,6 +369,8 @@ class Store:
 
     @recording.setter
     def recording(self, value: bool):
+        if value:
+            self.save('qnh', float(self.qnh))
         self._set_volatile_float('recording', float(value))
 
     @property
@@ -385,7 +387,8 @@ class Store:
 
     @qnh.setter
     def qnh(self, value: int):
-        self.save('qnh', float(value))
+        if self.recording:
+            self.save('qnh', float(value))
         self._set_volatile_float('qnh', float(value))
         
     @property
