@@ -97,7 +97,8 @@ endif
 # $2: staging directory of the package
 ifeq ($(BR2_PER_PACKAGE_DIRECTORIES),y)
 define fixup-libtool-files
-	$(Q)find $(2)/usr/lib* -name "*.la" | xargs --no-run-if-empty \
+	$(Q)find $(2) \( -path '$(2)/lib*' -o -path '$(2)/usr/lib*' \) \
+		-name "*.la" -print0 | xargs -0 --no-run-if-empty \
 		$(SED) "s:$(PER_PACKAGE_DIR)/[^/]\+/:$(PER_PACKAGE_DIR)/$(1)/:g"
 endef
 endif
@@ -133,6 +134,23 @@ define check_bin_arch
 		$(foreach i,$($(PKG)_BIN_ARCH_EXCLUDE),-i "$(i)") \
 		-r $(TARGET_READELF) \
 		-a $(BR2_READELF_ARCH_NAME)
+endef
+
+# Functions to remove conflicting and useless files
+
+# $1: base directory (target, staging, host)
+define remove-conflicting-useless-files
+	$(if $(strip $($(PKG)_DROP_FILES_OR_DIRS)),
+		$(Q)$(RM) -rf $(patsubst %, $(1)%, $($(PKG)_DROP_FILES_OR_DIRS)))
+endef
+define REMOVE_CONFLICTING_USELESS_FILES_IN_HOST
+	$(call remove-conflicting-useless-files,$(HOST_DIR))
+endef
+define REMOVE_CONFLICTING_USELESS_FILES_IN_STAGING
+	$(call remove-conflicting-useless-files,$(STAGING_DIR))
+endef
+define REMOVE_CONFLICTING_USELESS_FILES_IN_TARGET
+	$(call remove-conflicting-useless-files,$(TARGET_DIR))
 endef
 
 ################################################################################
@@ -235,7 +253,9 @@ $(BUILD_DIR)/%/.stamp_configured:
 	@$(call pkg_size_before,$(TARGET_DIR))
 	@$(call pkg_size_before,$(STAGING_DIR),-staging)
 	@$(call pkg_size_before,$(HOST_DIR),-host)
+	$(call fixup-libtool-files,$(NAME),$(HOST_DIR))
 	$(call fixup-libtool-files,$(NAME),$(STAGING_DIR))
+	$(foreach hook,$($(PKG)_POST_PREPARE_HOOKS),$(call $(hook))$(sep))
 	$(foreach hook,$($(PKG)_PRE_CONFIGURE_HOOKS),$(call $(hook))$(sep))
 	$($(PKG)_CONFIGURE_CMDS)
 	$(foreach hook,$($(PKG)_POST_CONFIGURE_HOOKS),$(call $(hook))$(sep))
@@ -518,7 +538,7 @@ ifndef $(2)_SOURCE
  ifdef $(3)_SOURCE
   $(2)_SOURCE = $$($(3)_SOURCE)
  else ifdef $(2)_VERSION
-  $(2)_SOURCE			?= $$($(2)_BASENAME_RAW).tar.gz
+  $(2)_SOURCE			?= $$($(2)_BASENAME_RAW)$$(call pkg_source_ext,$(2))
  endif
 endif
 
@@ -567,6 +587,12 @@ ifneq ($$(filter bzr cvs hg,$$($(2)_SITE_METHOD)),)
 BR_NO_CHECK_HASH_FOR += $$($(2)_SOURCE)
 endif
 
+ifndef $(2)_GIT_SUBMODULES
+ ifdef $(3)_GIT_SUBMODULES
+  $(2)_GIT_SUBMODULES = $$($(3)_GIT_SUBMODULES)
+ endif
+endif
+
 # Do not accept to download git submodule if not using the git method
 ifneq ($$($(2)_GIT_SUBMODULES),)
  ifneq ($$($(2)_SITE_METHOD),git)
@@ -607,6 +633,76 @@ endif
 $(2)_REDISTRIBUTE		?= YES
 
 $(2)_REDIST_SOURCES_DIR = $$(REDIST_SOURCES_DIR_$$(call UPPERCASE,$(4)))/$$($(2)_BASENAME_RAW)
+
+# If any of the <pkg>_CPE_ID_* variables are set, we assume the CPE ID
+# information is valid for this package.
+ifneq ($$($(2)_CPE_ID_VENDOR)$$($(2)_CPE_ID_PRODUCT)$$($(2)_CPE_ID_VERSION)$$($(2)_CPE_ID_UPDATE)$$($(2)_CPE_ID_PREFIX),)
+$(2)_CPE_ID_VALID = YES
+endif
+
+# When we're a host package, make sure to use the variables of the
+# corresponding target package, if any.
+ifneq ($$($(3)_CPE_ID_VENDOR)$$($(3)_CPE_ID_PRODUCT)$$($(3)_CPE_ID_VERSION)$$($(3)_CPE_ID_UPDATE)$$($(3)_CPE_ID_PREFIX),)
+$(2)_CPE_ID_VALID = YES
+endif
+
+# If the CPE ID is valid for the target package so it is for the host
+# package
+ifndef $(2)_CPE_ID_VALID
+ ifdef $(3)_CPE_ID_VALID
+   $(2)_CPE_ID_VALID = $$($(3)_CPE_ID_VALID)
+ endif
+endif
+
+ifeq ($$($(2)_CPE_ID_VALID),YES)
+ # CPE_ID_VENDOR
+ ifndef $(2)_CPE_ID_VENDOR
+  ifdef $(3)_CPE_ID_VENDOR
+   $(2)_CPE_ID_VENDOR = $$($(3)_CPE_ID_VENDOR)
+  else
+   $(2)_CPE_ID_VENDOR = $$($(2)_RAWNAME)_project
+ endif
+ endif
+
+ # CPE_ID_PRODUCT
+ ifndef $(2)_CPE_ID_PRODUCT
+  ifdef $(3)_CPE_ID_PRODUCT
+   $(2)_CPE_ID_PRODUCT = $$($(3)_CPE_ID_PRODUCT)
+  else
+   $(2)_CPE_ID_PRODUCT = $$($(2)_RAWNAME)
+  endif
+ endif
+
+ # CPE_ID_VERSION
+ ifndef $(2)_CPE_ID_VERSION
+  ifdef $(3)_CPE_ID_VERSION
+   $(2)_CPE_ID_VERSION = $$($(3)_CPE_ID_VERSION)
+  else
+   $(2)_CPE_ID_VERSION = $$($(2)_VERSION)
+  endif
+ endif
+
+ # CPE_ID_UPDATE
+ ifndef $(2)_CPE_ID_UPDATE
+  ifdef $(3)_CPE_ID_UPDATE
+   $(2)_CPE_ID_UPDATE = $$($(3)_CPE_ID_UPDATE)
+  else
+   $(2)_CPE_ID_UPDATE = *
+  endif
+ endif
+
+ # CPE_ID_PREFIX
+ ifndef $(2)_CPE_ID_PREFIX
+  ifdef $(3)_CPE_ID_PREFIX
+   $(2)_CPE_ID_PREFIX = $$($(3)_CPE_ID_PREFIX)
+  else
+   $(2)_CPE_ID_PREFIX = cpe:2.3:a
+  endif
+ endif
+
+ # Calculate complete CPE ID
+ $(2)_CPE_ID = $$($(2)_CPE_ID_PREFIX):$$($(2)_CPE_ID_VENDOR):$$($(2)_CPE_ID_PRODUCT):$$($(2)_CPE_ID_VERSION):$$($(2)_CPE_ID_UPDATE):*:*:*:*:*:*
+endif # ifeq ($$($(2)_CPE_ID_VALID),YES)
 
 # When a target package is a toolchain dependency set this variable to
 # 'NO' so the 'toolchain' dependency is not added to prevent a circular
@@ -740,6 +836,7 @@ $(2)_PRE_LEGAL_INFO_HOOKS       ?=
 $(2)_POST_LEGAL_INFO_HOOKS      ?=
 $(2)_TARGET_FINALIZE_HOOKS      ?=
 $(2)_ROOTFS_PRE_CMD_HOOKS       ?=
+$(2)_POST_PREPARE_HOOKS         ?=
 
 ifeq ($$($(2)_TYPE),target)
 ifneq ($$(HOST_$(2)_KCONFIG_VAR),)
@@ -747,9 +844,20 @@ $$(error "Package $(1) defines host variant before target variant!")
 endif
 endif
 
+# Globaly remove following conflicting and useless files
+$(2)_DROP_FILES_OR_DIRS += /share/info/dir
+
+ifeq ($$($(2)_TYPE),host)
+$(2)_POST_INSTALL_HOOKS += REMOVE_CONFLICTING_USELESS_FILES_IN_HOST
+else
+$(2)_POST_INSTALL_STAGING_HOOKS += REMOVE_CONFLICTING_USELESS_FILES_IN_STAGING
+$(2)_POST_INSTALL_TARGET_HOOKS += REMOVE_CONFLICTING_USELESS_FILES_IN_TARGET
+endif
+
 # human-friendly targets and target sequencing
 $(1):			$(1)-install
 $(1)-install:		$$($(2)_TARGET_INSTALL)
+$$($(2)_TARGET_INSTALL): $$($(2)_TARGET_BUILD)
 
 ifeq ($$($(2)_TYPE),host)
 $$($(2)_TARGET_INSTALL): $$($(2)_TARGET_INSTALL_HOST)
@@ -959,6 +1067,7 @@ $$($(2)_TARGET_DIRCLEAN):		NAME=$(1)
 # Compute the name of the Kconfig option that correspond to the
 # package being enabled. We handle three cases: the special Linux
 # kernel case, the bootloaders case, and the normal packages case.
+# Virtual packages are handled separately (see below).
 ifeq ($(1),linux)
 $(2)_KCONFIG_VAR = BR2_LINUX_KERNEL
 else ifneq ($$(filter boot/% $$(foreach dir,$$(BR2_EXTERNAL_DIRS),$$(dir)/boot/%),$(pkgdir)),)
@@ -1088,6 +1197,12 @@ TARGET_FINALIZE_HOOKS += $$($(2)_TARGET_FINALIZE_HOOKS)
 ROOTFS_PRE_CMD_HOOKS += $$($(2)_ROOTFS_PRE_CMD_HOOKS)
 KEEP_PYTHON_PY_FILES += $$($(2)_KEEP_PY_FILES)
 
+ifneq ($$($(2)_SELINUX_MODULES),)
+PACKAGES_SELINUX_MODULES += $$($(2)_SELINUX_MODULES)
+endif
+PACKAGES_SELINUX_EXTRA_MODULES_DIRS += \
+	$$(if $$(wildcard $$($(2)_PKGDIR)/selinux),$$($(2)_PKGDIR)/selinux)
+
 ifeq ($$($(2)_SITE_METHOD),svn)
 DL_TOOLS_DEPENDENCIES += svn
 else ifeq ($$($(2)_SITE_METHOD),git)
@@ -1150,6 +1265,22 @@ endif
 ifneq ($$($(2)_HELP_CMDS),)
 HELP_PACKAGES += $(2)
 endif
+
+# Virtual packages are not built but it's useful to allow them to have
+# permission/device/user tables and target-finalize/rootfs-pre-cmd hooks.
+else ifeq ($$(BR2_PACKAGE_HAS_$(2)),y) # $(2)_KCONFIG_VAR
+
+ifneq ($$($(2)_PERMISSIONS),)
+PACKAGES_PERMISSIONS_TABLE += $$($(2)_PERMISSIONS)$$(sep)
+endif
+ifneq ($$($(2)_DEVICES),)
+PACKAGES_DEVICES_TABLE += $$($(2)_DEVICES)$$(sep)
+endif
+ifneq ($$($(2)_USERS),)
+PACKAGES_USERS += $$($(2)_USERS)$$(sep)
+endif
+TARGET_FINALIZE_HOOKS += $$($(2)_TARGET_FINALIZE_HOOKS)
+ROOTFS_PRE_CMD_HOOKS += $$($(2)_ROOTFS_PRE_CMD_HOOKS)
 
 endif # $(2)_KCONFIG_VAR
 endef # inner-generic-package

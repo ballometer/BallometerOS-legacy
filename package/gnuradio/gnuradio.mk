@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-GNURADIO_VERSION = 3.8.1.0
+GNURADIO_VERSION = 3.8.2.0
 GNURADIO_SITE = https://github.com/gnuradio/gnuradio/releases/download/v$(GNURADIO_VERSION)
 GNURADIO_LICENSE = GPL-3.0+
 GNURADIO_LICENSE_FILES = COPYING
@@ -147,6 +147,13 @@ ifeq ($(BR2_PACKAGE_GNURADIO_TRELLIS),y)
 GNURADIO_CONF_OPTS += -DENABLE_GR_TRELLIS=ON
 else
 GNURADIO_CONF_OPTS += -DENABLE_GR_TRELLIS=OFF
+endif
+
+ifeq ($(BR2_PACKAGE_GNURADIO_UHD),y)
+GNURADIO_DEPENDENCIES += uhd
+GNURADIO_CONF_OPTS += -DENABLE_GR_UHD=ON
+else
+GNURADIO_CONF_OPTS += -DENABLE_GR_UHD=OFF
 endif
 
 ifeq ($(BR2_PACKAGE_GNURADIO_UTILS),y)
