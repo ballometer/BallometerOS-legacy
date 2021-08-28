@@ -1,3 +1,7 @@
+# DEPRECATED
+
+This repository has been deprecated. Development will continue at https://github.com/ballometer/BallometerOS which uses a buildroot external tree rather than the in-tree approach which was used here.
+
 # BallometerOS
 
 BallometerOS is the operating system running on ballometer Raspberry Pi 3 B+ devices. It is based on [buildroot](https://github.com/buildroot/buildroot) and supports automatic over-the-air updates inspired by  Android's [A/B system updates approach](https://source.android.com/devices/tech/ota/ab).
